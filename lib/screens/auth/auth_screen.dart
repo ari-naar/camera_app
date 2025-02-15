@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../navigation/navigation_controller.dart';
-import 'dart:ui';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -19,17 +20,15 @@ class _AuthScreenState extends State<AuthScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  final List<Color> _gradient = [Colors.purple, Colors.blue];
-
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _fadeAnimation =
-        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+        CurvedAnimation(parent: _animationController, curve: Curves.easeOut);
     _animationController.forward();
   }
 
@@ -43,11 +42,9 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _toggleMode() {
-    _animationController.reset();
     setState(() {
       _isLogin = !_isLogin;
     });
-    _animationController.forward();
   }
 
   void _submitForm() {
@@ -60,29 +57,38 @@ class _AuthScreenState extends State<AuthScreen>
   InputDecoration _buildInputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon, color: Colors.white70),
-      labelStyle: const TextStyle(color: Colors.white70),
+      prefixIcon: Icon(icon, color: Colors.white70, size: 20.sp),
+      labelStyle: TextStyle(
+        color: Colors.white70,
+        fontSize: 17.sp,
+        letterSpacing: -0.3,
+      ),
       filled: true,
       fillColor: Colors.white.withOpacity(0.1),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14.r),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.white),
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.3), width: 1),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.red),
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide: BorderSide(color: Colors.red.withOpacity(0.5), width: 1),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.red),
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide: BorderSide(color: Colors.red.withOpacity(0.5), width: 1),
+      ),
+      errorStyle: TextStyle(
+        color: Colors.red.withOpacity(0.7),
+        fontSize: 13.sp,
+        letterSpacing: -0.2,
       ),
     );
   }
@@ -91,181 +97,166 @@ class _AuthScreenState extends State<AuthScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Animated gradient background
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: _gradient,
-              ),
-            ),
-          ),
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-            child: Container(
-              color: Colors.black.withOpacity(0.7),
-            ),
-          ),
-          // Content
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // App Logo with gradient
-                        ShaderMask(
-                          shaderCallback: (Rect bounds) {
-                            return LinearGradient(
-                              colors: _gradient,
-                            ).createShader(bounds);
-                          },
-                          child: const Icon(
-                            Icons.camera_alt,
-                            size: 80,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 64.h),
 
-                        // Title with gradient
-                        ShaderMask(
-                          shaderCallback: (Rect bounds) {
-                            return LinearGradient(
-                              colors: _gradient,
-                            ).createShader(bounds);
-                          },
-                          child: Text(
-                            _isLogin ? 'Welcome Back' : 'Create Account',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(height: 48),
-
-                        // Username field (only for signup)
-                        if (!_isLogin) ...[
-                          TextFormField(
-                            controller: _usernameController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration:
-                                _buildInputDecoration('Username', Icons.person),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a username';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Email field
-                        TextFormField(
-                          controller: _emailController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration:
-                              _buildInputDecoration('Email', Icons.email),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Password field
-                        TextFormField(
-                          controller: _passwordController,
-                          style: const TextStyle(color: Colors.white),
-                          obscureText: true,
-                          decoration:
-                              _buildInputDecoration('Password', Icons.lock),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 32),
-
-                        // Submit button with gradient
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(colors: _gradient),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _gradient.first.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            onPressed: _submitForm,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              _isLogin ? 'Log In' : 'Sign Up',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Toggle mode button
-                        TextButton(
-                          onPressed: _toggleMode,
-                          child: Text(
-                            _isLogin
-                                ? 'Don\'t have an account? Sign Up'
-                                : 'Already have an account? Log In',
-                            style: TextStyle(
-                              color: _gradient.last.withOpacity(0.7),
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ],
+                    // Title
+                    Text(
+                      _isLogin ? 'Welcome\nBack' : 'Create\nAccount',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 34.sp,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
+                    SizedBox(height: 12.h),
+                    Text(
+                      _isLogin
+                          ? 'Sign in to continue capturing moments.'
+                          : 'Start your journey with us today.',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 17.sp,
+                        height: 1.3,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    SizedBox(height: 48.h),
+
+                    // Form Fields
+                    if (!_isLogin) ...[
+                      TextFormField(
+                        controller: _usernameController,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17.sp,
+                          letterSpacing: -0.3,
+                        ),
+                        decoration: _buildInputDecoration(
+                          'Username',
+                          HugeIcons.strokeRoundedUserAdd01,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a username';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+
+                    TextFormField(
+                      controller: _emailController,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17.sp,
+                        letterSpacing: -0.3,
+                      ),
+                      decoration: _buildInputDecoration(
+                        'Email',
+                        HugeIcons.strokeRoundedMail01,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16.h),
+
+                    TextFormField(
+                      controller: _passwordController,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17.sp,
+                        letterSpacing: -0.3,
+                      ),
+                      obscureText: true,
+                      decoration: _buildInputDecoration(
+                        'Password',
+                        HugeIcons.strokeRoundedSquareLock02,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 32.h),
+
+                    // Submit Button
+                    ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        minimumSize: Size(double.infinity, 52.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                      ),
+                      child: Text(
+                        _isLogin ? 'Sign In' : 'Create Account',
+                        style: TextStyle(
+                          fontSize: 17.sp,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+
+                    // Toggle Mode Button
+                    Center(
+                      child: TextButton(
+                        onPressed: _toggleMode,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 8.h,
+                          ),
+                        ),
+                        child: Text(
+                          _isLogin
+                              ? 'Don\'t have an account? Create one'
+                              : 'Already have an account? Sign in',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 15.sp,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
