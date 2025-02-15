@@ -6,12 +6,18 @@ class MainContainer extends StatefulWidget {
   const MainContainer({super.key});
 
   @override
-  State<MainContainer> createState() => _MainContainerState();
+  State<MainContainer> createState() => MainContainerState();
 }
 
-class _MainContainerState extends State<MainContainer> {
+class MainContainerState extends State<MainContainer> {
   final PageController _pageController = PageController(initialPage: 0);
   bool _isSwipingEnabled = true;
+
+  static MainContainerState? of(BuildContext context) {
+    return context.findAncestorStateOfType<MainContainerState>();
+  }
+
+  PageController get pageController => _pageController;
 
   @override
   void dispose() {

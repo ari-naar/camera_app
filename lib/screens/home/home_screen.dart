@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import '../../main.dart';
 import '../../navigation/navigation_controller.dart';
+import '../main_container.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(bool) onSwipeStateChanged;
@@ -437,16 +438,52 @@ class _HomeScreenState extends State<HomeScreen> {
           // Photos Left Counter
           SafeArea(
             child: Align(
-              alignment: Alignment.topCenter,
+              alignment: Alignment.topLeft,
               child: Padding(
-                padding: EdgeInsets.all(24.h),
-                child: Text(
-                  '$_photosLeft photos left',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
+                padding: EdgeInsets.symmetric(horizontal: 24.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // const Spacer(),
+                    Text(
+                      _photosLeft == 0
+                          ? 'No photos left'
+                          : _photosLeft == 1
+                              ? '$_photosLeft photo left'
+                              : '$_photosLeft photos left',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w900,
+                        fontFamily: 'LL Dot',
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        final ancestor = context
+                            .findAncestorStateOfType<MainContainerState>();
+                        if (ancestor != null) {
+                          ancestor.pageController.animateToPage(
+                            1,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.people_outline,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
