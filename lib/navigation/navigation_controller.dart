@@ -4,6 +4,7 @@ import '../screens/onboarding/welcome_screen.dart';
 import '../screens/auth/auth_screen.dart';
 import '../screens/main_container.dart';
 import '../screens/gallery/gallery_screen.dart';
+import '../screens/social/social_screen.dart';
 
 class NavigationController {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -13,7 +14,9 @@ class NavigationController {
       case '/auth':
         return MaterialPageRoute(builder: (_) => const AuthScreen());
       case '/home':
-        return MaterialPageRoute(builder: (_) => const MainContainer());
+        final photos = settings.arguments as List<XFile>?;
+        return MaterialPageRoute(
+            builder: (_) => MainContainer(todayPhotos: photos));
       case '/gallery':
         final photos = settings.arguments as List<XFile>?;
         return GalleryScreen.route(photos: photos);
@@ -26,8 +29,8 @@ class NavigationController {
     Navigator.pushReplacementNamed(context, '/auth');
   }
 
-  static void navigateToHome(BuildContext context) {
-    Navigator.pushReplacementNamed(context, '/home');
+  static void navigateToHome(BuildContext context, [List<XFile>? photos]) {
+    Navigator.pushReplacementNamed(context, '/home', arguments: photos);
   }
 
   static void navigateToGallery(BuildContext context, List<XFile>? photos) {

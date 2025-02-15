@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 import 'home/home_screen.dart';
 import 'social/social_screen.dart';
 
 class MainContainer extends StatefulWidget {
-  const MainContainer({super.key});
+  final List<XFile>? todayPhotos;
+
+  const MainContainer({
+    super.key,
+    this.todayPhotos,
+  });
 
   @override
   State<MainContainer> createState() => MainContainerState();
@@ -40,7 +46,7 @@ class MainContainerState extends State<MainContainer> {
           : const NeverScrollableScrollPhysics(),
       children: [
         HomeScreen(onSwipeStateChanged: setSwipingEnabled),
-        const SocialScreen(),
+        SocialScreen(todayPhotos: widget.todayPhotos),
       ],
     );
   }

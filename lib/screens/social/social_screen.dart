@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
-
+import 'dart:io';
+import 'package:camera/camera.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../main_container.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class SocialScreen extends StatefulWidget {
-  const SocialScreen({super.key});
+  final List<XFile>? todayPhotos;
+
+  const SocialScreen({
+    super.key,
+    this.todayPhotos,
+  });
 
   @override
   State<SocialScreen> createState() => _SocialScreenState();
@@ -53,6 +61,10 @@ class _SocialScreenState extends State<SocialScreen>
   late ScrollController _scrollController;
   bool _showAppBarBackground = false;
 
+  DateTime _selectedDay = DateTime.now();
+  DateTime _focusedDay = DateTime.now();
+  late Map<DateTime, List<XFile>> _photosByDate = {};
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +78,19 @@ class _SocialScreenState extends State<SocialScreen>
           _showAppBarBackground = _scrollController.offset > 20;
         });
       });
+    _initializePhotosByDate();
+  }
+
+  void _initializePhotosByDate() {
+    _photosByDate = {};
+    if (widget.todayPhotos != null) {
+      final today = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+      );
+      _photosByDate[today] = widget.todayPhotos!;
+    }
   }
 
   @override
@@ -76,62 +101,323 @@ class _SocialScreenState extends State<SocialScreen>
   }
 
   Widget _buildTodayPhotos() {
+    final hasPhotos =
+        widget.todayPhotos != null && widget.todayPhotos!.isNotEmpty;
+    final photoCount = widget.todayPhotos?.length ?? 0;
+
     return Container(
       height: 80.h,
       margin: EdgeInsets.only(bottom: 16.h),
-      child: ListView.builder(
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
+        physics: photoCount > 3
+            ? const BouncingScrollPhysics()
+            : const NeverScrollableScrollPhysics(),
         padding: EdgeInsets.symmetric(horizontal: 16.w),
-        itemCount: 5, // Maximum 5 photos per day
-        itemBuilder: (context, index) {
-          return Container(
-            width: 60.w,
-            margin: EdgeInsets.only(right: 12.w),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(
-                color: Colors.white24,
-                width: 1.w,
+        child: Row(
+          children: List.generate(5, (index) {
+            final photo = hasPhotos && index < photoCount
+                ? widget.todayPhotos![index]
+                : null;
+
+            return GestureDetector(
+              onTap: () {
+                if (photo != null) {
+                  _showPhotoOptionsModal(photo, index);
+                } else {
+                  // Navigate to camera screen
+                  final ancestor =
+                      context.findAncestorStateOfType<MainContainerState>();
+                  if (ancestor != null) {
+                    ancestor.pageController.animateToPage(
+                      0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                }
+              },
+              child: Container(
+                width: 60.w,
+                margin: EdgeInsets.only(right: 12.w),
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: Colors.white24,
+                    width: 1.w,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Photo or placeholder
+                      if (photo != null)
+                        Image.file(
+                          File(photo.path),
+                          fit: BoxFit.cover,
+                        ),
+
+                      // Lock overlay for unrevealed photos
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.3),
+                              Colors.black.withOpacity(0.7),
+                            ],
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            photo == null
+                                ? HugeIcons.strokeRoundedCamera01
+                                : HugeIcons.strokeRoundedSquareLock02,
+                            color: Colors.white.withOpacity(0.8),
+                            size: 20.sp,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  void _showPhotoOptionsModal(XFile photo, int index) {
+    final TextEditingController captionController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        ),
+        child: Column(
+          children: [
+            // Handle
+            Container(
+              margin: EdgeInsets.only(top: 8.h),
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2.r),
               ),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.r),
-              child: Stack(
-                fit: StackFit.expand,
+
+            // Photo preview
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: Image.file(
+                  File(photo.path),
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+
+            // Caption input
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w,
+                  MediaQuery.of(context).viewInsets.bottom + 16.h),
+              child: Column(
                 children: [
-                  photoTaken != null
-                      ? Image.file(
-                          File(photoTaken.path),
-                          fit: BoxFit.cover,
-                        )
-                      : const SizedBox.shrink(),
-                  // Lock overlay for unrevealed photos
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.3),
-                          Colors.black.withOpacity(0.7),
-                        ],
+                  TextField(
+                    controller: captionController,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Add a caption...',
+                      hintStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 14.sp,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
                       ),
                     ),
-                    child: Center(
-                      child: Icon(
-                        HugeIcons.strokeRoundedLock,
-                        color: Colors.white.withOpacity(0.8),
-                        size: 20.sp,
+                    maxLines: 3,
+                  ),
+                  SizedBox(height: 16.h),
+                  ElevatedButton(
+                    onPressed: () {
+                      // TODO: Save caption
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      minimumSize: Size(double.infinity, 48.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                    child: Text(
+                      'Save Caption',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          );
-        },
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCalendarModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        ),
+        child: Column(
+          children: [
+            // Handle
+            Container(
+              margin: EdgeInsets.only(top: 8.h),
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+
+            // Header
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              child: Row(
+                children: [
+                  Text(
+                    'Calendar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 24.sp,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+
+            // Calendar
+            TableCalendar(
+              firstDay: DateTime.now().subtract(const Duration(days: 365)),
+              lastDay: DateTime.now(),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              calendarFormat: CalendarFormat.month,
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              calendarStyle: CalendarStyle(
+                outsideDaysVisible: false,
+                weekendTextStyle:
+                    TextStyle(color: Colors.white.withOpacity(0.7)),
+                defaultTextStyle: const TextStyle(color: Colors.white),
+                selectedDecoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.8),
+                  shape: BoxShape.circle,
+                ),
+                todayDecoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                markerDecoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.8),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              headerStyle: HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
+                leftChevronIcon: Icon(
+                  Icons.chevron_left,
+                  color: Colors.white,
+                  size: 28.sp,
+                ),
+                rightChevronIcon: Icon(
+                  Icons.chevron_right,
+                  color: Colors.white,
+                  size: 28.sp,
+                ),
+                titleTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, date, events) {
+                  if (_photosByDate.containsKey(DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                  ))) {
+                    return Positioned(
+                      bottom: 1,
+                      child: Container(
+                        width: 6.w,
+                        height: 6.w,
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.8),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    );
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -176,10 +462,8 @@ class _SocialScreenState extends State<SocialScreen>
             },
           ),
           _buildActionButton(
-            icon: HugeIcons.strokeRoundedNotification02,
-            onTap: () {
-              // TODO: Implement notifications
-            },
+            icon: HugeIcons.strokeRoundedCalendar02,
+            onTap: _showCalendarModal,
           ),
           SizedBox(width: 8.w),
         ],
@@ -667,9 +951,7 @@ class _SocialScreenState extends State<SocialScreen>
                                 ? (pageController.page?.round() ?? 0) == index
                                     ? Colors.white
                                     : Colors.white.withOpacity(0.5)
-                                : index == 0
-                                    ? Colors.white
-                                    : Colors.white.withOpacity(0.5),
+                                : Colors.white.withOpacity(0.5),
                           ),
                         ),
                       ),
