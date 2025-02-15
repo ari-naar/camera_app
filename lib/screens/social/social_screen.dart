@@ -430,7 +430,7 @@ class _SocialScreenState extends State<SocialScreen>
                   children: [
                     _buildVerticalActionButton(
                       icon: post.isLiked
-                          ? HugeIcons.strokeRoundedFavourite
+                          ? HugeIcons.solidStandardFavourite
                           : HugeIcons.strokeRoundedFavourite,
                       color: post.isLiked ? Colors.red : Colors.white,
                       count: post.likes.toString(),

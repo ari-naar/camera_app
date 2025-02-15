@@ -36,7 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
   CameraController? _newController;
   bool _isCapturing = false;
   FlashMode _flashMode = FlashMode.off;
-  Offset? _focusPoint;
 
   @override
   void initState() {
@@ -83,11 +82,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
         await controller.initialize();
 
-        // Force a small delay to ensure camera is fully initialized
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Set zoom to 1.0x immediately after initialization
-        await controller.setZoomLevel(1.0);
+        // Set camera to fixed focus mode for everything to be in focus
+        await Future.wait([
+          controller.setFocusMode(FocusMode.auto),
+          controller.setExposureMode(ExposureMode.auto),
+          controller.setZoomLevel(1.0),
+        ]);
 
         if (mounted) {
           // Get zoom level bounds
@@ -98,9 +98,9 @@ class _HomeScreenState extends State<HomeScreen> {
           double effectiveMaxZoom;
           if (cameras[_currentCameraIndex].lensDirection ==
               CameraLensDirection.front) {
-            effectiveMaxZoom = math.min(maxZoom, 2.0); // Front camera: max 2x
+            effectiveMaxZoom = math.min(maxZoom, 2.0);
           } else {
-            effectiveMaxZoom = math.min(maxZoom, 25.0); // Rear camera: max 25x
+            effectiveMaxZoom = math.min(maxZoom, 25.0);
           }
 
           setState(() {
@@ -108,7 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
             _isInitialized = true;
             _hasError = false;
             _errorMessage = '';
-            // Allow 0.5x zoom if device supports it
             _minZoomLevel = math.min(0.5, minZoom);
             _maxZoomLevel = effectiveMaxZoom;
             _currentZoomLevel = 1.0;
@@ -169,11 +168,15 @@ class _HomeScreenState extends State<HomeScreen> {
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
 
-      // Set the controller variable
       _controller = controller;
-
-      // Wait for the new camera to initialize
       await controller.initialize();
+
+      // Set camera to fixed focus mode for everything to be in focus
+      await Future.wait([
+        controller.setFocusMode(FocusMode.auto),
+        controller.setExposureMode(ExposureMode.auto),
+        controller.setZoomLevel(1.0),
+      ]);
 
       if (!mounted) {
         await controller.dispose();
@@ -279,45 +282,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _handleTapToFocus(TapDownDetails details) async {
-    if (_controller == null || !_controller!.value.isInitialized) return;
-
-    // Provide haptic feedback immediately
-    HapticFeedback.selectionClick();
-
-    final size = MediaQuery.of(context).size;
-    final scale = size.aspectRatio * _controller!.value.aspectRatio;
-    final actualPreviewSize = Size(
-      size.width,
-      size.width / _controller!.value.aspectRatio,
-    );
-    final previewOffset = Offset(
-      0,
-      (size.height - actualPreviewSize.height) / 2,
-    );
-
-    final tapPosition = details.localPosition - previewOffset;
-    final proportionalPosition = Offset(
-      tapPosition.dx / actualPreviewSize.width,
-      tapPosition.dy / actualPreviewSize.height,
-    );
-
-    // Set focus point for visual indicator immediately
-    setState(() {
-      _focusPoint = details.localPosition;
-    });
-
-    // Set camera focus and exposure immediately
-    try {
-      await Future.wait([
-        _controller!.setFocusPoint(proportionalPosition),
-        _controller!.setExposurePoint(proportionalPosition),
-      ]);
-    } catch (e) {
-      debugPrint('Error setting focus: $e');
-    }
-  }
-
   Future<void> _toggleFlash() async {
     if (_controller == null || !_controller!.value.isInitialized) return;
 
@@ -349,13 +313,13 @@ class _HomeScreenState extends State<HomeScreen> {
   IconData _getFlashIcon() {
     switch (_flashMode) {
       case FlashMode.off:
-        return Icons.flash_off_rounded;
+        return HugeIcons.strokeRoundedFlashOff;
       case FlashMode.auto:
-        return Icons.flash_auto_rounded;
+        return HugeIcons.strokeRoundedFlash;
       case FlashMode.always:
-        return Icons.flash_on_rounded;
+        return HugeIcons.solidRoundedFlash;
       default:
-        return Icons.flash_off_rounded;
+        return HugeIcons.strokeRoundedFlashOff;
     }
   }
 
@@ -434,7 +398,6 @@ class _HomeScreenState extends State<HomeScreen> {
       onScaleUpdate: _handleScaleUpdate,
       onScaleEnd: _handleScaleEnd,
       onDoubleTap: _handleDoubleTap,
-      onTapDown: _handleTapToFocus,
       child: Transform.scale(
         scale: scale,
         child: Center(
@@ -488,37 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white.withOpacity(0.3),
             ),
 
-          // Zoom Level Indicator (only show when not at 1.0x)
-          if (_currentZoomLevel != 1.0)
-            SafeArea(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 8.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${_currentZoomLevel.toStringAsFixed(1)}x',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // Photos Left Counter
+          // Photos Left Counter and Controls
           SafeArea(
             child: Align(
               alignment: Alignment.topLeft,
@@ -540,9 +473,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontFamily: 'LL Dot',
                       ),
                     ),
-                    Column(
+                    Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        GestureDetector(
+                          onTap: _toggleFlash,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _getFlashIcon(),
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
                         GestureDetector(
                           onTap: () {
                             final ancestor = context
@@ -568,42 +517,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 8.h),
-                        if (_currentZoomLevel != 1.0)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12.w,
-                              vertical: 6.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${_currentZoomLevel.toStringAsFixed(1)}x',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        SizedBox(height: 8.h),
-                        GestureDetector(
-                          onTap: _toggleFlash,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              _getFlashIcon(),
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ],
@@ -612,138 +525,119 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Focus point indicator
-          if (_focusPoint != null)
-            Positioned(
-              left: _focusPoint!.dx - 40,
-              top: _focusPoint!.dy - 40,
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 1.0, end: 0.0),
-                duration: const Duration(milliseconds: 300),
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: 1.0 - value * 0.3,
-                    child: Opacity(
-                      opacity: value < 0.7 ? 1.0 - value : 1.0,
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.yellow,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.yellow,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                onEnd: () {
-                  setState(() {
-                    _focusPoint = null;
-                  });
-                },
-              ),
-            ),
-
           // Camera Controls Row
           Positioned(
             bottom: 48,
             left: 24,
             right: 24,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Gallery Button (if photos exist)
-                if (_capturedPhotos.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      NavigationController.navigateToGallery(
-                        context,
-                        _capturedPhotos,
-                      );
-                    },
+                if (_currentZoomLevel != 1.0)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 16.h),
                     child: Container(
-                      width: 48.w,
-                      height: 48.w,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        shape: BoxShape.circle,
-                        border: Border.all(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_currentZoomLevel.toStringAsFixed(1)}x',
+                        style: TextStyle(
                           color: Colors.white,
-                          width: 1.5.w,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                      child: ClipOval(
-                        child: Image.file(
-                          File(_capturedPhotos.last.path),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  SizedBox(width: 48.w),
-
-                // Shutter Button
-                GestureDetector(
-                  onTap: _photosLeft > 0 ? _capturePhoto : null,
-                  child: Container(
-                    width: 60.w,
-                    height: 60.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2.5.w,
-                      ),
-                    ),
-                    child: Container(
-                      margin: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
                       ),
                     ),
                   ),
-                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Gallery Button (if photos exist)
+                    if (_capturedPhotos.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          NavigationController.navigateToGallery(
+                            context,
+                            _capturedPhotos,
+                          );
+                        },
+                        child: Container(
+                          width: 48.w,
+                          height: 48.w,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.7),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5.w,
+                            ),
+                          ),
+                          child: ClipOval(
+                            child: Image.file(
+                              File(_capturedPhotos.last.path),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      SizedBox(width: 48.w),
 
-                // Camera Flip Button
-                if (cameras.length > 1)
-                  GestureDetector(
-                    onTap: _switchCamera,
-                    child: Container(
-                      width: 48.w,
-                      height: 48.w,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 1.5.w,
+                    // Shutter Button
+                    GestureDetector(
+                      onTap: _photosLeft > 0 ? _capturePhoto : null,
+                      child: Container(
+                        width: 60.w,
+                        height: 60.w,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2.5.w,
+                          ),
+                        ),
+                        child: Container(
+                          margin: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                      child: Icon(
-                        HugeIcons.strokeRoundedCameraRotated02,
-                        color: Colors.white,
-                        size: 20.sp,
-                      ),
                     ),
-                  )
-                else
-                  SizedBox(width: 48.w),
+
+                    // Camera Flip Button
+                    if (cameras.length > 1)
+                      GestureDetector(
+                        onTap: _switchCamera,
+                        child: Container(
+                          width: 48.w,
+                          height: 48.w,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.7),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5.w,
+                            ),
+                          ),
+                          child: Icon(
+                            HugeIcons.strokeRoundedCameraRotated02,
+                            color: Colors.white,
+                            size: 20.sp,
+                          ),
+                        ),
+                      )
+                    else
+                      SizedBox(width: 48.w),
+                  ],
+                ),
               ],
             ),
           ),

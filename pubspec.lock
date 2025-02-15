@@ -156,10 +156,10 @@ packages:
     dependency: "direct main"
     description:
       name: hugeicons
-      sha256: b5cf08183a75b7774ca6d601a2ef025ed26550e4fca9d956673ffda91e132411
-      url: "https://pub.dev"
+      sha256: a3ce19859c0fb2efef7a1377d2840617bb28c647484711584aae3d1e7212177a
+      url: "https://onepub.dev/api/kdpxxpsdav/"
     source: hosted
-    version: "0.0.7"
+    version: "0.0.4"
   intl:
     dependency: "direct main"
     description:

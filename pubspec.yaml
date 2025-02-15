@@ -39,7 +39,9 @@ dependencies:
   table_calendar: ^3.0.9
   flutter_screenutil: ^5.9.0
   intl: ^0.18.1
-  hugeicons: ^0.0.7
+  hugeicons:
+    hosted: https://onepub.dev/api/kdpxxpsdav
+    version: ^0.0.4
 
 dev_dependencies:
   flutter_test:
