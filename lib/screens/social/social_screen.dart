@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../main_container.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../navigation/navigation_controller.dart';
 
 class SocialScreen extends StatefulWidget {
   final List<XFile>? todayPhotos;
@@ -511,6 +512,19 @@ class _SocialScreenState extends State<SocialScreen>
           _buildActionButton(
             icon: HugeIcons.strokeRoundedCalendar02,
             onTap: _showCalendarModal,
+          ),
+          SizedBox(width: 8.w),
+          GestureDetector(
+            onTap: () => NavigationController.navigateToProfile(context),
+            child: CircleAvatar(
+              radius: 16.r,
+              backgroundColor: Colors.white.withOpacity(0.1),
+              child: Icon(
+                HugeIcons.strokeRoundedUser,
+                color: Colors.white,
+                size: 16.sp,
+              ),
+            ),
           ),
           SizedBox(width: 8.w),
         ],

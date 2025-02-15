@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'screens/onboarding/welcome_screen.dart';
-import 'screens/auth/auth_screen.dart';
-import 'screens/home/home_screen.dart';
-import 'screens/gallery/gallery_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:camera/camera.dart';
 import 'navigation/navigation_controller.dart';
+import 'theme/theme_provider.dart';
 
 List<CameraDescription> cameras = [];
 
@@ -17,7 +16,15 @@ Future<void> main() async {
     debugPrint('Failed to get cameras: $e');
     cameras = [];
   }
-  runApp(const MyApp());
+
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(prefs),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -25,19 +32,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,
       builder: (context, child) {
         return MaterialApp(
           title: 'Camera App',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.black,
-              brightness: Brightness.dark,
-            ),
-            useMaterial3: true,
-          ),
+          theme: themeProvider.theme,
           initialRoute: '/home',
           onGenerateRoute: NavigationController.onGenerateRoute,
         );

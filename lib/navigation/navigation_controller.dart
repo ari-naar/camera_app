@@ -5,6 +5,7 @@ import '../screens/auth/auth_screen.dart';
 import '../screens/main_container.dart';
 import '../screens/gallery/gallery_screen.dart';
 import '../screens/social/social_screen.dart';
+import '../screens/profile/profile_screen.dart';
 
 class NavigationController {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -20,6 +21,8 @@ class NavigationController {
       case '/gallery':
         final photos = settings.arguments as List<XFile>?;
         return GalleryScreen.route(photos: photos);
+      case '/profile':
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
       default:
         return MaterialPageRoute(builder: (_) => const WelcomeScreen());
     }
@@ -35,5 +38,9 @@ class NavigationController {
 
   static void navigateToGallery(BuildContext context, List<XFile>? photos) {
     Navigator.pushNamed(context, '/gallery', arguments: photos);
+  }
+
+  static void navigateToProfile(BuildContext context) {
+    Navigator.pushNamed(context, '/profile');
   }
 }
