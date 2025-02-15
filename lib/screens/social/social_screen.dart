@@ -515,30 +515,23 @@ class _SocialScreenState extends State<SocialScreen>
           SizedBox(width: 8.w),
         ],
       ),
-      body: Column(
-        children: [
-          // Top padding to account for app bar
-          SizedBox(height: topPadding + kToolbarHeight),
-
-          // Today's photos
-          _buildTodayPhotos(),
-
-          // Posts list
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              padding: EdgeInsets.only(bottom: 16.h),
-              itemCount: _posts.length,
-              itemBuilder: (context, index) {
-                final post = _posts[index];
-                return _buildPostCard(post, index);
-              },
-            ),
-          ),
-        ],
+      body: ListView.builder(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        padding: EdgeInsets.only(
+          top: topPadding + kToolbarHeight,
+          bottom: 16.h,
+        ),
+        itemCount: _posts.length + 1, // +1 for the photos section
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildTodayPhotos();
+          }
+          final post = _posts[index - 1];
+          return _buildPostCard(post, index - 1);
+        },
       ),
     );
   }
