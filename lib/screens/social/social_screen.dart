@@ -175,7 +175,7 @@ class _SocialScreenState extends State<SocialScreen>
                         child: Center(
                           child: Icon(
                             photo == null
-                                ? HugeIcons.strokeRoundedCamera01
+                                ? HugeIcons.strokeRoundedCameraLens
                                 : HugeIcons.strokeRoundedSquareLock02,
                             color: Colors.white.withOpacity(0.8),
                             size: 20.sp,
