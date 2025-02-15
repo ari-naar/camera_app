@@ -18,18 +18,29 @@ class PhotoPreviewScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // White top section
+          // White background
           Container(
-            height: MediaQuery.of(context).size.height * 0.45,
             color: Colors.white,
           ),
 
-          // Black bottom section
+          // Black overlay section with curved top
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.55,
-              color: Colors.black,
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(32.r),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 40.w),
@@ -47,8 +58,11 @@ class PhotoPreviewScreen extends StatelessWidget {
             ),
           ),
 
-          // Blurred photo in the middle
-          Center(
+          // Blurred photo emerging from the intersection
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.35,
+            left: 0,
+            right: 0,
             child: TweenAnimationBuilder<double>(
               duration: const Duration(milliseconds: 800),
               curve: Curves.easeOutCubic,
@@ -60,11 +74,13 @@ class PhotoPreviewScreen extends StatelessWidget {
                     width: MediaQuery.of(context).size.width * 0.75,
                     height:
                         (MediaQuery.of(context).size.width * 0.75) * (9 / 16),
+                    margin: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.125),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withOpacity(0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -77,7 +93,7 @@ class PhotoPreviewScreen extends StatelessWidget {
                           // Blurred photo
                           ImageFiltered(
                             imageFilter:
-                                ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                                ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                             child: Image.file(
                               File(photo.path),
                               fit: BoxFit.cover,
@@ -87,7 +103,7 @@ class PhotoPreviewScreen extends StatelessWidget {
                           ),
                           // Darkening overlay
                           Container(
-                            color: Colors.black.withOpacity(0.4),
+                            color: Colors.black.withOpacity(0.5),
                           ),
                         ],
                       ),
