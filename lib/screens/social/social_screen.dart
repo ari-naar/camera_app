@@ -184,7 +184,8 @@ class _SocialScreenState extends State<SocialScreen>
 
                 // Header
                 Padding(
-                  padding: EdgeInsets.all(16.w),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                   child: Row(
                     children: [
                       Text(

@@ -34,6 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
   double _baseZoomLevel = 1.0;
   int _currentCameraIndex = 0;
   CameraController? _newController;
+  bool _isCapturing = false;
+  FlashMode _flashMode = FlashMode.off;
 
   @override
   void initState() {
@@ -276,7 +278,74 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  bool _isCapturing = false;
+  Future<void> _handleTapToFocus(TapDownDetails details) async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+
+    final size = MediaQuery.of(context).size;
+    final scale = size.aspectRatio * _controller!.value.aspectRatio;
+    final actualPreviewSize = Size(
+      size.width,
+      size.width / _controller!.value.aspectRatio,
+    );
+    final previewOffset = Offset(
+      0,
+      (size.height - actualPreviewSize.height) / 2,
+    );
+
+    final tapPosition = details.localPosition - previewOffset;
+    final proportionalPosition = Offset(
+      tapPosition.dx / actualPreviewSize.width,
+      tapPosition.dy / actualPreviewSize.height,
+    );
+
+    try {
+      await _controller!.setFocusPoint(proportionalPosition);
+      await _controller!.setExposurePoint(proportionalPosition);
+    } catch (e) {
+      debugPrint('Error setting focus: $e');
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+
+    try {
+      FlashMode newMode;
+      switch (_flashMode) {
+        case FlashMode.off:
+          newMode = FlashMode.auto;
+          break;
+        case FlashMode.auto:
+          newMode = FlashMode.always;
+          break;
+        case FlashMode.always:
+          newMode = FlashMode.off;
+          break;
+        default:
+          newMode = FlashMode.off;
+      }
+
+      await _controller!.setFlashMode(newMode);
+      setState(() {
+        _flashMode = newMode;
+      });
+    } catch (e) {
+      debugPrint('Error toggling flash: $e');
+    }
+  }
+
+  IconData _getFlashIcon() {
+    switch (_flashMode) {
+      case FlashMode.off:
+        return Icons.flash_off_rounded;
+      case FlashMode.auto:
+        return Icons.flash_auto_rounded;
+      case FlashMode.always:
+        return Icons.flash_on_rounded;
+      default:
+        return Icons.flash_off_rounded;
+    }
+  }
 
   void _showCapturePreview() {
     if (_capturedPhotos.isEmpty) return;
@@ -353,6 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onScaleUpdate: _handleScaleUpdate,
       onScaleEnd: _handleScaleEnd,
       onDoubleTap: _handleDoubleTap,
+      onTapDown: _handleTapToFocus,
       child: Transform.scale(
         scale: scale,
         child: Center(
@@ -445,7 +515,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // const Spacer(),
                     Text(
                       _photosLeft == 0
                           ? 'No photos left'
@@ -459,30 +528,51 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontFamily: 'LL Dot',
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        final ancestor = context
-                            .findAncestorStateOfType<MainContainerState>();
-                        if (ancestor != null) {
-                          ancestor.pageController.animateToPage(
-                            1,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            final ancestor = context
+                                .findAncestorStateOfType<MainContainerState>();
+                            if (ancestor != null) {
+                              ancestor.pageController.animateToPage(
+                                1,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              HugeIcons.strokeRoundedUserGroup,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
                         ),
-                        child: const Icon(
-                          HugeIcons.strokeRoundedUserGroup,
-                          color: Colors.white,
-                          size: 24,
+                        SizedBox(height: 8.h),
+                        GestureDetector(
+                          onTap: _toggleFlash,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _getFlashIcon(),
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
