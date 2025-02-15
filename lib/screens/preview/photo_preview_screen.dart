@@ -37,7 +37,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
 
     // Top white container animation (slides from top)
     _topWhiteController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
     _topWhiteAnimation = Tween<double>(
@@ -50,7 +50,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
 
     // Bottom black container animation (slides from bottom)
     _bottomBlackController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
     _bottomBlackAnimation = Tween<double>(
@@ -63,7 +63,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
 
     // Notch black container animation (slides down from center)
     _notchBlackController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
     _notchBlackSlideAnimation = Tween<double>(
@@ -83,7 +83,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
 
     // Photo container animation
     _photoContainerController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
     _photoContainerAnimation = TweenSequence<double>([
@@ -124,7 +124,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
     _notchBlackController.forward();
 
     // Wait for containers to finish
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 2000));
 
     // Start photo container animation
     _photoContainerController.forward();
@@ -212,7 +212,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 40.w),
                           child: Text(
-                            'Your photos will be ready\nin 8.5 hours',
+                            'Your photos will be\nready in 8.5 hours',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 17.sp,
@@ -274,9 +274,9 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
                             final double heightProgress =
                                 _photoContainerAnimation.value;
                             final double containerHeight =
-                                MediaQuery.of(context).size.height * 0.1;
+                                MediaQuery.of(context).size.height * 0.15;
                             final double maxAdditionalHeight =
-                                containerHeight * 0.3;
+                                containerHeight * 0.2;
 
                             return Container(
                               margin: EdgeInsets.symmetric(horizontal: 40.w),

@@ -246,26 +246,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      // Flash animation
-      setState(() {
-        _isCapturing = true;
-      });
-
       final XFile photo = await _controller!.takePicture();
 
       setState(() {
         _capturedPhotos.add(photo);
         _photosLeft--;
-        _isCapturing = false;
       });
 
       // Show preview
       _showCapturePreview();
     } catch (e) {
       print('Error capturing photo: $e');
-      setState(() {
-        _isCapturing = false;
-      });
     }
   }
 
@@ -411,12 +402,6 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Camera Preview
           _buildCameraPreview(),
-
-          // Flash overlay
-          if (_isCapturing)
-            Container(
-              color: Colors.white.withOpacity(0.3),
-            ),
 
           // Photos Left Counter
           SafeArea(
