@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'dart:ui';
-import 'dart:io';
 import 'dart:math' as math;
 import '../../main.dart';
 import '../../navigation/navigation_controller.dart';
-import '../main_container.dart';
-import '../preview/photo_preview_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(bool) onSwipeStateChanged;
@@ -35,9 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _currentZoomLevel = 1.0;
   double _baseZoomLevel = 1.0;
   int _currentCameraIndex = 0;
-  CameraController? _newController;
   bool _isCapturing = false;
-  FlashMode _flashMode = FlashMode.off;
 
   @override
   void initState() {
@@ -284,60 +277,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _toggleFlash() async {
-    if (_controller == null || !_controller!.value.isInitialized) return;
-
-    try {
-      FlashMode newMode;
-      switch (_flashMode) {
-        case FlashMode.off:
-          newMode = FlashMode.auto;
-          break;
-        case FlashMode.auto:
-          newMode = FlashMode.always;
-          break;
-        case FlashMode.always:
-          newMode = FlashMode.off;
-          break;
-        default:
-          newMode = FlashMode.off;
-      }
-
-      await _controller!.setFlashMode(newMode);
-      setState(() {
-        _flashMode = newMode;
-      });
-    } catch (e) {
-      debugPrint('Error toggling flash: $e');
-    }
-  }
-
-  IconData _getFlashIcon() {
-    switch (_flashMode) {
-      case FlashMode.off:
-        return HugeIcons.strokeRoundedFlashOff;
-      case FlashMode.auto:
-        return HugeIcons.strokeRoundedFlash;
-      case FlashMode.always:
-        return HugeIcons.solidRoundedFlash;
-      default:
-        return HugeIcons.strokeRoundedFlashOff;
-    }
-  }
-
   void _showCapturePreview() {
     if (_capturedPhotos.isEmpty) return;
-
-    Navigator.of(context).push(
-      PhotoPreviewScreen.route(photo: _capturedPhotos.last),
-    );
-
-    // Automatically dismiss after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
-      if (context.mounted) {
-        Navigator.pop(context);
-      }
-    });
+    NavigationController.navigateToPreview(context, _capturedPhotos.last);
   }
 
   Widget _buildCameraPreview() {
