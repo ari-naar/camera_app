@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'dart:io';
 import 'dart:math' as math;
 import '../../main.dart';
@@ -284,8 +285,8 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: 200,
-        margin: const EdgeInsets.all(16),
+        height: 200.h,
+        margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         decoration: BoxDecoration(
           color: Colors.black87,
           borderRadius: BorderRadius.circular(16),
@@ -295,8 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Expanded(
               child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
                 child: Image.file(
                   File(_capturedPhotos.last.path),
                   fit: BoxFit.cover,
@@ -304,15 +304,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     '$_photosLeft photos left today',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 16.sp,
                     ),
                   ),
                   TextButton(
@@ -370,18 +370,18 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 color: Colors.red,
-                size: 48,
+                size: 48.r,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               Text(
                 _errorMessage,
                 style: const TextStyle(color: Colors.red),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               ElevatedButton(
                 onPressed: _initializeCamera,
                 child: const Text('Retry'),
@@ -412,11 +412,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Align(
                 alignment: Alignment.topCenter,
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.7),
@@ -424,9 +425,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Text(
                       '${_currentZoomLevel.toStringAsFixed(1)}x',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -477,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.people_outline,
+                          HugeIcons.strokeRoundedUserGroup,
                           color: Colors.white,
                           size: 24,
                         ),
@@ -507,14 +508,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                     child: Container(
-                      width: 48,
-                      height: 48,
+                      width: 48.w,
+                      height: 48.w,
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.7),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: Colors.white,
-                          width: 2,
+                          width: 1.5.w,
                         ),
                       ),
                       child: ClipOval(
@@ -526,19 +527,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   )
                 else
-                  const SizedBox(width: 48),
+                  SizedBox(width: 48.w),
 
                 // Shutter Button
                 GestureDetector(
                   onTap: _photosLeft > 0 ? _capturePhoto : null,
                   child: Container(
-                    width: 72,
-                    height: 72,
+                    width: 60.w,
+                    height: 60.w,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: Colors.white,
-                        width: 4,
+                        width: 2.5.w,
                       ),
                     ),
                     child: Container(
@@ -556,25 +557,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   GestureDetector(
                     onTap: _switchCamera,
                     child: Container(
-                      width: 48,
-                      height: 48,
+                      width: 48.w,
+                      height: 48.w,
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.7),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: Colors.white,
-                          width: 2,
+                          width: 1.5.w,
                         ),
                       ),
-                      child: const Icon(
-                        Icons.flip_camera_ios,
+                      child: Icon(
+                        HugeIcons.strokeRoundedCameraRotated02,
                         color: Colors.white,
-                        size: 24,
+                        size: 20.sp,
                       ),
                     ),
                   )
                 else
-                  const SizedBox(width: 48),
+                  SizedBox(width: 48.w),
               ],
             ),
           ),
