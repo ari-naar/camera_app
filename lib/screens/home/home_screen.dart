@@ -329,7 +329,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_capturedPhotos.isEmpty) return;
 
     Navigator.of(context).push(
-      PhotoPreviewScreen.route(photo: _capturedPhotos.last),
+      // PhotoPreviewScreen.route(photo: _capturedPhotos.last),
+      PhotoPreviewScreen.route(),
     );
 
     // Automatically dismiss after 2 seconds

@@ -6,6 +6,7 @@ import '../screens/main_container.dart';
 import '../screens/gallery/gallery_screen.dart';
 import '../screens/social/social_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/preview/photo_preview_screen.dart';
 
 class NavigationController {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -23,6 +24,10 @@ class NavigationController {
         return GalleryScreen.route(photos: photos);
       case '/profile':
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
+      case '/preview':
+        // final photo = settings.arguments as XFile;
+        // return PhotoPreviewScreen.route(photo: photo);
+        return PhotoPreviewScreen.route();
       default:
         return MaterialPageRoute(builder: (_) => const WelcomeScreen());
     }
@@ -42,5 +47,9 @@ class NavigationController {
 
   static void navigateToProfile(BuildContext context) {
     Navigator.pushNamed(context, '/profile');
+  }
+
+  static void navigateToPreview(BuildContext context, XFile photo) {
+    Navigator.pushNamed(context, '/preview', arguments: photo);
   }
 }

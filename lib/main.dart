@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Camera App',
           theme: themeProvider.theme,
-          initialRoute: '/home',
+          initialRoute: '/preview',
           onGenerateRoute: NavigationController.onGenerateRoute,
         );
       },
