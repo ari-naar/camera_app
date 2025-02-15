@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'dart:ui';
 import 'dart:io';
 import 'dart:math' as math;
 import '../../main.dart';
 import '../../navigation/navigation_controller.dart';
 import '../main_container.dart';
+import '../preview/photo_preview_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(bool) onSwipeStateChanged;
@@ -326,59 +328,16 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showCapturePreview() {
     if (_capturedPhotos.isEmpty) return;
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: 200.h,
-        margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        decoration: BoxDecoration(
-          color: Colors.black87,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-                child: Image.file(
-                  File(_capturedPhotos.last.path),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '$_photosLeft photos left today',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.sp,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      NavigationController.navigateToGallery(
-                        context,
-                        _capturedPhotos,
-                      );
-                    },
-                    child: const Text(
-                      'View All',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+    Navigator.of(context).push(
+      PhotoPreviewScreen.route(photo: _capturedPhotos.last),
     );
+
+    // Automatically dismiss after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    });
   }
 
   Widget _buildCameraPreview() {
@@ -393,16 +352,90 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (scale < 1) scale = 1 / scale;
 
+    // Calculate viewport dimensions for 16:9 vertical aspect ratio
+    final viewportWidth = size.width * 0.75;
+    final viewportHeight = viewportWidth * (16 / 9);
+
     return GestureDetector(
       onScaleStart: _handleScaleStart,
       onScaleUpdate: _handleScaleUpdate,
       onScaleEnd: _handleScaleEnd,
       onDoubleTap: _handleDoubleTap,
-      child: Transform.scale(
-        scale: scale,
-        child: Center(
-          child: CameraPreview(_controller!),
-        ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Black background
+          Container(color: Colors.black),
+
+          // Centered viewfinder
+          Center(
+            child: Stack(
+              children: [
+                // Main container
+                Container(
+                  width: viewportWidth * 0.8,
+                  height: viewportHeight * 0.8,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32.r),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Camera preview
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(32.r),
+                        child: Transform.scale(
+                          scale: scale,
+                          child: Center(
+                            child: CameraPreview(_controller!),
+                          ),
+                        ),
+                      ),
+
+                      // Inner border
+                      Positioned.fill(
+                        child: Container(
+                          margin: EdgeInsets.all(14.w),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24.r),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1.w,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Top-left corner decoration
+                      Positioned(
+                        top: 28.h,
+                        left: 28.w,
+                        child: Container(
+                          width: 16.w,
+                          height: 16.w,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(8.r),
+                            ),
+                            border: Border(
+                              top: BorderSide(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1.5.w,
+                              ),
+                              left: BorderSide(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1.5.w,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -451,194 +484,62 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white.withOpacity(0.3),
             ),
 
-          // Photos Left Counter and Controls
+          // Photos Left Counter
           SafeArea(
             child: Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.h),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _photosLeft == 0
-                          ? 'No photos left'
-                          : _photosLeft == 1
-                              ? '$_photosLeft photo left'
-                              : '$_photosLeft photos left',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: 'LL Dot',
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: _toggleFlash,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              _getFlashIcon(),
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8.w),
-                        GestureDetector(
-                          onTap: () {
-                            final ancestor = context
-                                .findAncestorStateOfType<MainContainerState>();
-                            if (ancestor != null) {
-                              ancestor.pageController.animateToPage(
-                                1,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              HugeIcons.strokeRoundedUserGroup,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+              alignment: Alignment.topCenter,
+              child: Container(
+                margin: EdgeInsets.only(top: 16.h),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.23),
+                  borderRadius: BorderRadius.circular(6.r),
+                ),
+                child: Text(
+                  _photosLeft == 1
+                      ? '1 SHOT LEFT'
+                      : '${_photosLeft} SHOTS LEFT',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
+                  ),
                 ),
               ),
             ),
           ),
 
-          // Camera Controls Row
+          // Shutter Button
           Positioned(
-            bottom: 48,
-            left: 24,
-            right: 24,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_currentZoomLevel != 1.0)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 16.h),
+            left: 0,
+            right: 0,
+            bottom: 48.h,
+            child: Center(
+              child: GestureDetector(
+                onTap: _photosLeft > 0 ? _capturePhoto : null,
+                child: Container(
+                  width: 64.w,
+                  height: 64.w,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 3.w,
+                    ),
+                  ),
+                  child: Center(
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${_currentZoomLevel.toStringAsFixed(1)}x',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      width: 48.w,
+                      height: 48.w,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
                       ),
                     ),
                   ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Gallery Button (if photos exist)
-                    if (_capturedPhotos.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          NavigationController.navigateToGallery(
-                            context,
-                            _capturedPhotos,
-                          );
-                        },
-                        child: Container(
-                          width: 48.w,
-                          height: 48.w,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.5.w,
-                            ),
-                          ),
-                          child: ClipOval(
-                            child: Image.file(
-                              File(_capturedPhotos.last.path),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(width: 48.w),
-
-                    // Shutter Button
-                    GestureDetector(
-                      onTap: _photosLeft > 0 ? _capturePhoto : null,
-                      child: Container(
-                        width: 60.w,
-                        height: 60.w,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2.5.w,
-                          ),
-                        ),
-                        child: Container(
-                          margin: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Camera Flip Button
-                    if (cameras.length > 1)
-                      GestureDetector(
-                        onTap: _switchCamera,
-                        child: Container(
-                          width: 48.w,
-                          height: 48.w,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.5.w,
-                            ),
-                          ),
-                          child: Icon(
-                            HugeIcons.strokeRoundedCameraRotated02,
-                            color: Colors.white,
-                            size: 20.sp,
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(width: 48.w),
-                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ],
