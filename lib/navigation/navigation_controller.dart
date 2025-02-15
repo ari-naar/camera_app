@@ -1,9 +1,9 @@
-import 'package:camera_app/screens/main_container.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import '../screens/onboarding/welcome_screen.dart';
 import '../screens/auth/auth_screen.dart';
 import '../screens/preview/photo_preview_screen.dart';
+import '../screens/home/home_screen.dart';
 
 class NavigationController {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -13,10 +13,7 @@ class NavigationController {
       case '/auth':
         return MaterialPageRoute(builder: (_) => const AuthScreen());
       case '/home':
-        final photos = settings.arguments as List<XFile>?;
-        return MaterialPageRoute(
-            builder: (_) => MainContainer(todayPhotos: photos));
-
+        return MaterialPageRoute(builder: (_) => const HomeScreen());
       case '/preview':
         final photo = settings.arguments as XFile;
         return MaterialPageRoute(
@@ -31,8 +28,8 @@ class NavigationController {
     Navigator.pushReplacementNamed(context, '/auth');
   }
 
-  static void navigateToHome(BuildContext context, [List<XFile>? photos]) {
-    Navigator.pushReplacementNamed(context, '/home', arguments: photos);
+  static void navigateToHome(BuildContext context) {
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   static void navigateToProfile(BuildContext context) {

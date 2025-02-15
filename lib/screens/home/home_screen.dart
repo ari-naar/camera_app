@@ -7,12 +7,7 @@ import '../../main.dart';
 import '../../navigation/navigation_controller.dart';
 
 class HomeScreen extends StatefulWidget {
-  final Function(bool) onSwipeStateChanged;
-
-  const HomeScreen({
-    super.key,
-    required this.onSwipeStateChanged,
-  });
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -230,7 +225,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleScaleStart(ScaleStartDetails details) {
-    widget.onSwipeStateChanged(false);
     _baseZoomLevel = _currentZoomLevel;
   }
 
@@ -238,9 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _setZoomLevel(_baseZoomLevel * details.scale);
   }
 
-  void _handleScaleEnd(ScaleEndDetails details) {
-    widget.onSwipeStateChanged(true);
-  }
+  void _handleScaleEnd(ScaleEndDetails details) {}
 
   void _handleDoubleTap() {
     _switchCamera();

@@ -37,7 +37,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
 
     // Top white container animation (slides from top)
     _topWhiteController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
     _topWhiteAnimation = Tween<double>(
@@ -50,7 +50,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
 
     // Bottom black container animation (slides from bottom)
     _bottomBlackController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
     _bottomBlackAnimation = Tween<double>(
@@ -63,7 +63,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
 
     // Notch black container animation (slides down from center)
     _notchBlackController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
     _notchBlackSlideAnimation = Tween<double>(
@@ -83,7 +83,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
 
     // Photo container animation
     _photoContainerController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _photoContainerAnimation = TweenSequence<double>([
@@ -124,10 +124,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
     _notchBlackController.forward();
 
     // Wait for containers to finish
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    // Pause for 0.5 seconds
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 1500));
 
     // Start photo container animation
     _photoContainerController.forward();
@@ -139,7 +136,6 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
     _textController.forward();
 
     // Wait for all animations to complete plus hold time
-    await Future.delayed(const Duration(milliseconds: 1000));
     await Future.delayed(const Duration(seconds: 3));
 
     // Reverse animations before popping
@@ -216,11 +212,12 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen>
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 40.w),
                           child: Text(
-                            'Your photos will be ready in 8.5 hours',
+                            'Your photos will be ready\nin 8.5 hours',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 17.sp,
                               fontWeight: FontWeight.w400,
+                              height: 1.4,
                             ),
                             textAlign: TextAlign.center,
                           ),
