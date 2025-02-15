@@ -56,7 +56,7 @@ class PhotoPreviewScreen extends StatelessWidget {
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 60.w),
               padding: EdgeInsets.symmetric(horizontal: 24.w),
-              height: MediaQuery.of(context).size.height * 0.15,
+              height: MediaQuery.of(context).size.height * 0.15.h,
               decoration: BoxDecoration(
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(16.r),
