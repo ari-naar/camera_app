@@ -75,6 +75,67 @@ class _SocialScreenState extends State<SocialScreen>
     super.dispose();
   }
 
+  Widget _buildTodayPhotos() {
+    return Container(
+      height: 80.h,
+      margin: EdgeInsets.only(bottom: 16.h),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        itemCount: 5, // Maximum 5 photos per day
+        itemBuilder: (context, index) {
+          return Container(
+            width: 60.w,
+            margin: EdgeInsets.only(right: 12.w),
+            decoration: BoxDecoration(
+              color: Colors.grey[900],
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: Colors.white24,
+                width: 1.w,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8.r),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  photoTaken != null
+                      ? Image.file(
+                          File(photoTaken.path),
+                          fit: BoxFit.cover,
+                        )
+                      : const SizedBox.shrink(),
+                  // Lock overlay for unrevealed photos
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.3),
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        HugeIcons.strokeRoundedLock,
+                        color: Colors.white.withOpacity(0.8),
+                        size: 20.sp,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
@@ -123,20 +184,30 @@ class _SocialScreenState extends State<SocialScreen>
           SizedBox(width: 8.w),
         ],
       ),
-      body: ListView.builder(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        padding: EdgeInsets.only(
-          top: topPadding + kToolbarHeight,
-          bottom: 16.h,
-        ),
-        itemCount: _posts.length,
-        itemBuilder: (context, index) {
-          final post = _posts[index];
-          return _buildPostCard(post, index);
-        },
+      body: Column(
+        children: [
+          // Top padding to account for app bar
+          SizedBox(height: topPadding + kToolbarHeight),
+
+          // Today's photos
+          _buildTodayPhotos(),
+
+          // Posts list
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              padding: EdgeInsets.only(bottom: 16.h),
+              itemCount: _posts.length,
+              itemBuilder: (context, index) {
+                final post = _posts[index];
+                return _buildPostCard(post, index);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
