@@ -1,9 +1,8 @@
+import 'package:camera_app/screens/main_container.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import '../screens/onboarding/welcome_screen.dart';
 import '../screens/auth/auth_screen.dart';
-import '../screens/main_container.dart';
-import '../screens/profile/profile_screen.dart';
 import '../screens/preview/photo_preview_screen.dart';
 
 class NavigationController {
@@ -17,8 +16,7 @@ class NavigationController {
         final photos = settings.arguments as List<XFile>?;
         return MaterialPageRoute(
             builder: (_) => MainContainer(todayPhotos: photos));
-      case '/profile':
-        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+
       case '/preview':
         final photo = settings.arguments as XFile;
         return MaterialPageRoute(
