@@ -36,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   CameraController? _newController;
   bool _isCapturing = false;
   FlashMode _flashMode = FlashMode.off;
+  Offset? _focusPoint;
 
   @override
   void initState() {
@@ -281,6 +282,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleTapToFocus(TapDownDetails details) async {
     if (_controller == null || !_controller!.value.isInitialized) return;
 
+    // Provide haptic feedback immediately
+    HapticFeedback.selectionClick();
+
     final size = MediaQuery.of(context).size;
     final scale = size.aspectRatio * _controller!.value.aspectRatio;
     final actualPreviewSize = Size(
@@ -298,9 +302,17 @@ class _HomeScreenState extends State<HomeScreen> {
       tapPosition.dy / actualPreviewSize.height,
     );
 
+    // Set focus point for visual indicator immediately
+    setState(() {
+      _focusPoint = details.localPosition;
+    });
+
+    // Set camera focus and exposure immediately
     try {
-      await _controller!.setFocusPoint(proportionalPosition);
-      await _controller!.setExposurePoint(proportionalPosition);
+      await Future.wait([
+        _controller!.setFocusPoint(proportionalPosition),
+        _controller!.setExposurePoint(proportionalPosition),
+      ]);
     } catch (e) {
       debugPrint('Error setting focus: $e');
     }
@@ -557,6 +569,26 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         SizedBox(height: 8.h),
+                        if (_currentZoomLevel != 1.0)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${_currentZoomLevel.toStringAsFixed(1)}x',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        SizedBox(height: 8.h),
                         GestureDetector(
                           onTap: _toggleFlash,
                           child: Container(
@@ -579,6 +611,52 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+
+          // Focus point indicator
+          if (_focusPoint != null)
+            Positioned(
+              left: _focusPoint!.dx - 40,
+              top: _focusPoint!.dy - 40,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 1.0, end: 0.0),
+                duration: const Duration(milliseconds: 300),
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: 1.0 - value * 0.3,
+                    child: Opacity(
+                      opacity: value < 0.7 ? 1.0 - value : 1.0,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.yellow,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.yellow,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                onEnd: () {
+                  setState(() {
+                    _focusPoint = null;
+                  });
+                },
+              ),
+            ),
 
           // Camera Controls Row
           Positioned(
