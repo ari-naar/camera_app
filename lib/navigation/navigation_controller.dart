@@ -25,9 +25,8 @@ class NavigationController {
       case '/profile':
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       case '/preview':
-        // final photo = settings.arguments as XFile;
-        // return PhotoPreviewScreen.route(photo: photo);
-        return PhotoPreviewScreen.route();
+        final photo = settings.arguments as XFile;
+        return PhotoPreviewScreen.route(photo: photo);
       default:
         return MaterialPageRoute(builder: (_) => const WelcomeScreen());
     }
