@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/theme_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,13 +16,17 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _hapticsEnabled = true;
+  bool _notificationsEnabled = true;
   bool _isEditingUsername = false;
   final _usernameController = TextEditingController(text: 'johndoe');
   final _usernameFocusNode = FocusNode();
+  static const String _hapticsKey = 'haptics_enabled';
+  static const String _notificationsKey = 'notifications_enabled';
 
   @override
   void initState() {
     super.initState();
+    _loadSettings();
     _usernameFocusNode.addListener(() {
       if (!_usernameFocusNode.hasFocus && _isEditingUsername) {
         setState(() {
@@ -28,6 +34,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     });
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _hapticsEnabled = prefs.getBool(_hapticsKey) ?? true;
+      _notificationsEnabled = prefs.getBool(_notificationsKey) ?? true;
+    });
+  }
+
+  Future<void> _updateHaptics(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_hapticsKey, value);
+    setState(() {
+      _hapticsEnabled = value;
+    });
+    if (_hapticsEnabled) {
+      HapticFeedback.lightImpact();
+    }
+  }
+
+  Future<void> _updateNotifications(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_notificationsKey, value);
+    setState(() {
+      _notificationsEnabled = value;
+    });
+    if (_hapticsEnabled) {
+      HapticFeedback.lightImpact();
+    }
   }
 
   @override
@@ -45,37 +81,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Color? titleColor,
     bool showDivider = true,
   }) {
+    final theme = Theme.of(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         ListTile(
           onTap: onTap,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
+          contentPadding: theme.listTileTheme.contentPadding,
           title: Text(
             title,
-            style: TextStyle(
-              color: titleColor ?? Colors.white,
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w500,
-              letterSpacing: -0.3,
+            style: theme.listTileTheme.titleTextStyle?.copyWith(
+              color: titleColor,
             ),
           ),
           subtitle: subtitle != null
               ? Text(
                   subtitle,
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 13.sp,
-                    height: 1.3,
-                    letterSpacing: -0.2,
-                  ),
+                  style: theme.listTileTheme.subtitleTextStyle,
                 )
               : null,
           trailing: trailing,
         ),
         if (showDivider)
           Divider(
-            color: Colors.white.withOpacity(0.1),
+            color: theme.dividerTheme.color,
             indent: 20.w,
             endIndent: 20.w,
             height: 1,
@@ -85,54 +115,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 8.h),
       child: Text(
         title,
-        style: TextStyle(
-          color: Colors.white54,
-          fontSize: 13.sp,
-          fontWeight: FontWeight.w500,
-          letterSpacing: -0.2,
-        ),
+        style: theme.textTheme.labelMedium,
       ),
     );
   }
 
   Widget _buildUsernameField() {
+    final theme = Theme.of(context);
+
     if (_isEditingUsername) {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
         child: TextField(
           controller: _usernameController,
           focusNode: _usernameFocusNode,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 15.sp,
-            letterSpacing: -0.3,
-          ),
+          style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide:
-                  BorderSide(color: Colors.white.withOpacity(0.3), width: 1),
-            ),
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            fillColor: theme.brightness == Brightness.dark
+                ? Colors.white.withOpacity(0.1)
+                : Colors.black.withOpacity(0.05),
+            border: theme.inputDecorationTheme.border,
+            enabledBorder: theme.inputDecorationTheme.enabledBorder,
+            focusedBorder: theme.inputDecorationTheme.focusedBorder,
+            contentPadding: theme.inputDecorationTheme.contentPadding,
             suffixIcon: IconButton(
               icon: Icon(
                 Icons.check_circle_outline_rounded,
-                color: Colors.white70,
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white70
+                    : Colors.black54,
                 size: 16.sp,
               ),
               onPressed: () {
@@ -157,7 +175,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       subtitle: '@${_usernameController.text}',
       trailing: Icon(
         HugeIcons.strokeRoundedEdit01,
-        color: Colors.white70,
+        color: theme.brightness == Brightness.dark
+            ? Colors.white70
+            : Colors.black54,
         size: 16.sp,
       ),
       onTap: () {
@@ -171,27 +191,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
             HugeIcons.strokeRoundedArrowLeft01,
-            color: Colors.white,
+            color: theme.iconTheme.color,
             size: 20.sp,
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.3,
-          ),
+          style: theme.appBarTheme.titleTextStyle,
         ),
       ),
       body: SingleChildScrollView(
@@ -208,12 +225,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: 100.w,
                     height: 100.w,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white.withOpacity(0.1)
+                          : Colors.black.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       HugeIcons.strokeRoundedUserAdd01,
-                      color: Colors.white,
+                      color: theme.iconTheme.color,
                       size: 40.sp,
                     ),
                   ),
@@ -223,12 +242,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         HugeIcons.strokeRoundedCamera01,
-                        color: Colors.black,
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.black
+                            : Colors.white,
                         size: 16.sp,
                       ),
                     ),
@@ -250,14 +273,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Preferences Section
             _buildSectionHeader('PREFERENCES'),
             _buildSettingItem(
+              title: 'Notifications',
+              trailing: CupertinoSwitch(
+                value: _notificationsEnabled,
+                onChanged: _updateNotifications,
+                activeColor: Colors.blue,
+              ),
+            ),
+            _buildSettingItem(
               title: 'Haptic Feedback',
               trailing: CupertinoSwitch(
                 value: _hapticsEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _hapticsEnabled = value;
-                  });
-                },
+                onChanged: _updateHaptics,
                 activeColor: Colors.blue,
               ),
             ),
@@ -266,6 +293,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               trailing: CupertinoSwitch(
                 value: context.watch<ThemeProvider>().isDarkMode,
                 onChanged: (value) {
+                  if (_hapticsEnabled) {
+                    HapticFeedback.lightImpact();
+                  }
                   context.read<ThemeProvider>().setDarkMode(value);
                 },
                 activeColor: Colors.blue,
@@ -278,7 +308,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title: 'Terms & Conditions',
               trailing: Icon(
                 HugeIcons.strokeRoundedArrowRight01,
-                color: Colors.white70,
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white70
+                    : Colors.black54,
                 size: 16.sp,
               ),
               onTap: () {
@@ -289,7 +321,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title: 'Privacy Policy',
               trailing: Icon(
                 HugeIcons.strokeRoundedArrowRight01,
-                color: Colors.white70,
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white70
+                    : Colors.black54,
                 size: 16.sp,
               ),
               onTap: () {
@@ -301,7 +335,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               subtitle: '1.0.0',
               trailing: Icon(
                 HugeIcons.strokeRoundedInformationCircle,
-                color: Colors.white70,
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white70
+                    : Colors.black54,
                 size: 16.sp,
               ),
             ),

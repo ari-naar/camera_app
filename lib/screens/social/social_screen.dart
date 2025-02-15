@@ -473,13 +473,14 @@ class _SocialScreenState extends State<SocialScreen>
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: _showAppBarBackground
-            ? Colors.black.withOpacity(0.8)
+            ? theme.scaffoldBackgroundColor.withOpacity(0.8)
             : Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -495,11 +496,9 @@ class _SocialScreenState extends State<SocialScreen>
             : null,
         title: Text(
           'Social',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20.sp,
-            fontWeight: FontWeight.w900,
+          style: theme.textTheme.titleLarge?.copyWith(
             fontFamily: 'LL Dot',
+            fontWeight: FontWeight.w900,
           ),
         ),
         actions: [
@@ -518,10 +517,12 @@ class _SocialScreenState extends State<SocialScreen>
             onTap: () => NavigationController.navigateToProfile(context),
             child: CircleAvatar(
               radius: 16.r,
-              backgroundColor: Colors.white.withOpacity(0.1),
+              backgroundColor: theme.brightness == Brightness.dark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.1),
               child: Icon(
                 HugeIcons.strokeRoundedUser,
-                color: Colors.white,
+                color: theme.iconTheme.color,
                 size: 16.sp,
               ),
             ),
@@ -566,6 +567,7 @@ class _SocialScreenState extends State<SocialScreen>
   }
 
   void _showFriendSearchModal() {
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -575,7 +577,7 @@ class _SocialScreenState extends State<SocialScreen>
           return Container(
             height: MediaQuery.of(context).size.height * 0.92,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: theme.scaffoldBackgroundColor,
               borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
             ),
             child: Column(
@@ -588,17 +590,13 @@ class _SocialScreenState extends State<SocialScreen>
                     children: [
                       Text(
                         'Add Friends',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: theme.textTheme.titleMedium,
                       ),
                       const Spacer(),
                       IconButton(
                         icon: Icon(
                           Icons.close,
-                          color: Colors.white,
+                          color: theme.iconTheme.color,
                           size: 24.sp,
                         ),
                         onPressed: () => Navigator.pop(context),
@@ -612,23 +610,25 @@ class _SocialScreenState extends State<SocialScreen>
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white.withOpacity(0.1)
+                          : Colors.black.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: TextField(
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14.sp,
-                      ),
+                      style: theme.textTheme.bodyLarge,
                       decoration: InputDecoration(
                         hintText: 'Search by username or email',
-                        hintStyle: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 14.sp,
+                        hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.brightness == Brightness.dark
+                              ? Colors.white.withOpacity(0.5)
+                              : Colors.black.withOpacity(0.5),
                         ),
                         prefixIcon: Icon(
                           HugeIcons.strokeRoundedSearch01,
-                          color: Colors.white.withOpacity(0.5),
+                          color: theme.brightness == Brightness.dark
+                              ? Colors.white.withOpacity(0.5)
+                              : Colors.black.withOpacity(0.5),
                           size: 18.sp,
                         ),
                         border: InputBorder.none,
@@ -650,11 +650,7 @@ class _SocialScreenState extends State<SocialScreen>
                     children: [
                       Text(
                         'Suggested Friends',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: theme.textTheme.labelMedium,
                       ),
                     ],
                   ),
