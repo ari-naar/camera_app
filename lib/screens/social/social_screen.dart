@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
 
+import 'package:hugeicons/hugeicons.dart';
+
 class SocialScreen extends StatefulWidget {
   const SocialScreen({super.key});
 
@@ -15,7 +17,11 @@ class _SocialScreenState extends State<SocialScreen>
     SocialPost(
       username: "Sarah",
       timeAgo: "2h ago",
-      imageUrl: "https://picsum.photos/500/500",
+      imageUrls: [
+        "https://picsum.photos/500/800",
+        "https://picsum.photos/500/801",
+        "https://picsum.photos/500/802",
+      ],
       likes: 127,
       comments: 23,
       isLiked: false,
@@ -23,7 +29,9 @@ class _SocialScreenState extends State<SocialScreen>
     SocialPost(
       username: "Mike",
       timeAgo: "4h ago",
-      imageUrl: "https://picsum.photos/501/501",
+      imageUrls: [
+        "https://picsum.photos/501/800",
+      ],
       likes: 89,
       comments: 12,
       isLiked: true,
@@ -31,7 +39,10 @@ class _SocialScreenState extends State<SocialScreen>
     SocialPost(
       username: "Emma",
       timeAgo: "6h ago",
-      imageUrl: "https://picsum.photos/502/502",
+      imageUrls: [
+        "https://picsum.photos/502/800",
+        "https://picsum.photos/502/801",
+      ],
       likes: 234,
       comments: 45,
       isLiked: false,
@@ -98,13 +109,13 @@ class _SocialScreenState extends State<SocialScreen>
         ),
         actions: [
           _buildActionButton(
-            icon: Icons.person_add_outlined,
+            icon: HugeIcons.strokeRoundedUserAdd01,
             onTap: () {
-              // TODO: Implement friend requests
+              _showFriendSearchModal();
             },
           ),
           _buildActionButton(
-            icon: Icons.notifications_outlined,
+            icon: HugeIcons.strokeRoundedNotification02,
             onTap: () {
               // TODO: Implement notifications
             },
@@ -134,29 +145,212 @@ class _SocialScreenState extends State<SocialScreen>
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 4.w),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: EdgeInsets.all(6.w),
+    return IconButton(
+      onPressed: onTap,
+      icon: Icon(
+        icon,
+        color: Colors.white,
+        size: 18.sp,
+      ),
+      // padding: EdgeInsets.symmetric(horizontal: 4.w),
+    );
+  }
+
+  void _showFriendSearchModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.92,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.1),
-                width: 1,
-              ),
+              color: Colors.black,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 20.sp,
+            child: Column(
+              children: [
+                // Handle
+                Container(
+                  margin: EdgeInsets.only(top: 8.h),
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+
+                // Header
+                Padding(
+                  padding: EdgeInsets.all(16.w),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Add Friends',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 24.sp,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Search bar
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: TextField(
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Search by username or email',
+                        hintStyle: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 14.sp,
+                        ),
+                        prefixIcon: Icon(
+                          HugeIcons.strokeRoundedSearch01,
+                          color: Colors.white.withOpacity(0.5),
+                          size: 18.sp,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 12.h,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 16.h),
+
+                // Suggested friends section
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Suggested Friends',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 12.h),
+
+                // Suggested friends list
+                Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    itemCount:
+                        10, // Replace with actual suggested friends count
+                    itemBuilder: (context, index) {
+                      return _buildFriendItem(
+                        imageUrl: "https://picsum.photos/200/200?random=$index",
+                        username: "User ${index + 1}",
+                        mutualFriends: "${index + 2} mutual friends",
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFriendItem({
+    required String imageUrl,
+    required String username,
+    required String mutualFriends,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      child: Row(
+        children: [
+          // Profile picture
+          CircleAvatar(
+            radius: 18.r,
+            backgroundImage: NetworkImage(imageUrl),
+          ),
+          SizedBox(width: 12.w),
+
+          // User info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  username,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  mutualFriends,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 10.sp,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
+
+          // Add button
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                // TODO: Implement add friend functionality
+              },
+              borderRadius: BorderRadius.circular(8.r),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 8.h,
+                ),
+                child: Text(
+                  'Add',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -175,322 +369,246 @@ class _SocialScreenState extends State<SocialScreen>
           ),
         );
       },
-      child: Container(
-        margin: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.grey[900]!.withOpacity(0.8),
-              Colors.grey[850]!.withOpacity(0.8),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPostHeader(post),
-                _buildPostImage(post),
-                _buildPostActions(post),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPostHeader(SocialPost post) {
-    return Padding(
-      padding: EdgeInsets.all(12.w),
-      child: Row(
-        children: [
-          Hero(
-            tag: 'profile_${post.username}',
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    // TODO: Navigate to profile
-                  },
-                  borderRadius: BorderRadius.circular(20.r),
-                  child: CircleAvatar(
-                    radius: 20.r,
-                    backgroundImage: NetworkImage(post.imageUrl),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  post.username,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  post.timeAgo,
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12.sp,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.more_horiz,
-              color: Colors.white,
-              size: 20.sp,
-            ),
-            onPressed: () {
-              // TODO: Show post options
-            },
-            padding: EdgeInsets.all(4.w),
-            constraints: const BoxConstraints(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostImage(SocialPost post) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: AspectRatio(
-        aspectRatio: 3 / 4,
-        child: GestureDetector(
-          onDoubleTap: () {
-            setState(() {
-              post.isLiked = !post.isLiked;
-              if (post.isLiked) {
-                post.likes++;
-              } else {
-                post.likes--;
-              }
-            });
-            _animationController.forward(from: 0.0);
-          },
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox.expand(
-                child: Image.network(
-                  post.imageUrl,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: Colors.grey[900],
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[900],
-                      child: const Center(
-                        child: Icon(
-                          Icons.error_outline,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              ScaleTransition(
-                scale: Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-                  parent: _animationController,
-                  curve: Curves.elasticOut,
-                )),
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 300),
-                  opacity: _animationController.value,
-                  child: Icon(
-                    Icons.favorite,
-                    color: Colors.white,
-                    size: 72.sp,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.photo_library,
-                        color: Colors.white,
-                        size: 14.sp,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        '1/5',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPostActions(SocialPost post) {
-    return Padding(
-      padding: EdgeInsets.all(12.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // Header
+          Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 16.r,
+                  backgroundImage: NetworkImage(post.imageUrls[0]),
+                ),
+                SizedBox(width: 8.w),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      post.username,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      post.timeAgo,
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10.sp,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Icon(
+                  HugeIcons.strokeRoundedMoreVertical,
+                  color: Colors.white,
+                  size: 20.sp,
+                ),
+              ],
+            ),
+          ),
+
+          // Image with action buttons
+          Stack(
             children: [
-              _buildActionIconButton(
-                icon: post.isLiked ? Icons.favorite : Icons.favorite_border,
-                color: post.isLiked ? Colors.red : Colors.white,
-                count: post.likes.toString(),
-                onTap: () {
-                  setState(() {
-                    post.isLiked = !post.isLiked;
-                    if (post.isLiked) {
-                      post.likes++;
-                    } else {
-                      post.likes--;
-                    }
-                  });
-                },
+              // Image carousel
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: _buildPostImage(post),
               ),
-              SizedBox(width: 16.w),
-              _buildActionIconButton(
-                icon: Icons.chat_bubble_outline,
-                count: post.comments.toString(),
-                onTap: () {
-                  // TODO: Show comments
-                },
-              ),
-              const Spacer(),
-              _buildActionIconButton(
-                icon: Icons.share_outlined,
-                onTap: () {
-                  // TODO: Share post
-                },
+
+              // Vertical action buttons
+              Positioned(
+                right: 12.w,
+                bottom: 24.h,
+                child: Column(
+                  children: [
+                    _buildVerticalActionButton(
+                      icon: post.isLiked
+                          ? HugeIcons.strokeRoundedFavourite
+                          : HugeIcons.strokeRoundedFavourite,
+                      color: post.isLiked ? Colors.red : Colors.white,
+                      count: post.likes.toString(),
+                      onTap: () {
+                        setState(() {
+                          post.isLiked = !post.isLiked;
+                          if (post.isLiked) {
+                            post.likes++;
+                          } else {
+                            post.likes--;
+                          }
+                        });
+                      },
+                    ),
+                    _buildVerticalActionButton(
+                      icon: HugeIcons.strokeRoundedComment02,
+                      count: post.comments.toString(),
+                      onTap: () {
+                        // TODO: Show comments
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
+          ),
+
+          // Comment section
+          Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Add a comment...',
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionIconButton({
+  Widget _buildVerticalActionButton({
     required IconData icon,
     String? count,
     required VoidCallback onTap,
     Color color = Colors.white,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: EdgeInsets.all(6.w),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                color: color,
-                size: 22.sp,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              if (count != null) ...[
-                SizedBox(width: 6.w),
-                Text(
-                  count,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w500,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
+    return Column(
+      children: [
+        IconButton(
+          icon: Icon(icon, color: color),
+          onPressed: onTap,
+          padding: EdgeInsets.all(0.w),
+          constraints: BoxConstraints(
+            minWidth: 40.w,
+            minHeight: 40.w,
           ),
         ),
-      ),
+        if (count != null) ...[
+          Transform.translate(
+            offset: Offset(0, -6.h),
+            child: Text(
+              count,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPostImage(SocialPost post) {
+    final PageController pageController = PageController();
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Container(
+          color: Colors.black,
+          child: AspectRatio(
+            aspectRatio: 3 / 4,
+            child: Stack(
+              children: [
+                PageView.builder(
+                  controller: pageController,
+                  itemCount: post.imageUrls.length,
+                  onPageChanged: (index) {
+                    setState(() {});
+                  },
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onDoubleTap: () {
+                        this.setState(() {
+                          post.isLiked = !post.isLiked;
+                          if (post.isLiked) {
+                            post.likes++;
+                          } else {
+                            post.likes--;
+                          }
+                        });
+                      },
+                      child: Image.network(
+                        post.imageUrls[index],
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[900],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                color: Colors.white,
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[900],
+                            child: const Center(
+                              child: Icon(
+                                Icons.error_outline,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+                if (post.imageUrls.length > 1) ...[
+                  Positioned(
+                    bottom: 12,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        post.imageUrls.length,
+                        (index) => Container(
+                          width: 6.w,
+                          height: 6.w,
+                          margin: EdgeInsets.symmetric(horizontal: 2.w),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: pageController.hasClients
+                                ? (pageController.page?.round() ?? 0) == index
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.5)
+                                : index == 0
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -498,7 +616,7 @@ class _SocialScreenState extends State<SocialScreen>
 class SocialPost {
   final String username;
   final String timeAgo;
-  final String imageUrl;
+  final List<String> imageUrls;
   int likes;
   final int comments;
   bool isLiked;
@@ -506,7 +624,7 @@ class SocialPost {
   SocialPost({
     required this.username,
     required this.timeAgo,
-    required this.imageUrl,
+    required this.imageUrls,
     required this.likes,
     required this.comments,
     required this.isLiked,

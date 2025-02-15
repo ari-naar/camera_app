@@ -39,6 +39,7 @@ dependencies:
   table_calendar: ^3.0.9
   flutter_screenutil: ^5.9.0
   intl: ^0.18.1
+  hugeicons: ^0.0.7
 
 dev_dependencies:
   flutter_test:
