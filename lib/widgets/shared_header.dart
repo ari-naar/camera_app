@@ -13,8 +13,8 @@ class SharedHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 8.h, right: 8.w),
-      width: 56.w,
+      margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+      // width: 42.w,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [

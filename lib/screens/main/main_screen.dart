@@ -29,34 +29,37 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: GestureDetector(
-          onLongPress: _toggleHeader,
-          child: Stack(
-            children: [
-              // Full screen content
-              PageView(
-                controller: _pageController,
-                children: const [
-                  _HomeContent(),
-                  _SocialContent(),
-                ],
-              ),
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: GestureDetector(
+            onLongPress: _toggleHeader,
+            child: Stack(
+              children: [
+                // Full screen content
+                PageView(
+                  controller: _pageController,
+                  children: const [
+                    _HomeContent(),
+                    _SocialContent(),
+                  ],
+                ),
 
-              // Header overlay with animation
-              if (_showHeader)
-                AnimatedOpacity(
-                  opacity: _showHeader ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: const Positioned(
+                // Header overlay with animation
+                if (_showHeader)
+                  Positioned(
                     top: 0,
                     right: 0,
-                    child: SharedHeader(),
+                    child: AnimatedOpacity(
+                      opacity: _showHeader ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const SharedHeader(),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
