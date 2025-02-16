@@ -18,6 +18,7 @@ class SocialFeedScreen extends StatefulWidget {
 
 class _SocialFeedScreenState extends State<SocialFeedScreen>
     with TickerProviderStateMixin {
+  // ===== Controllers & Animations =====
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   late AnimationController _commentController;
@@ -26,15 +27,33 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _commentInputController = TextEditingController();
   final FocusNode _commentFocus = FocusNode();
+
+  // ===== State Variables =====
   bool _isCommentEmpty = true;
   SocialPhoto? _activeCommentPhoto;
-
-  // Mock data for testing
   List<SocialPhoto> _photos = [];
 
+  // ===== Lifecycle Methods =====
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+    _initializeListeners();
+    _loadMockPhotos();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _commentController.dispose();
+    _scrollController.dispose();
+    _commentInputController.dispose();
+    _commentFocus.dispose();
+    super.dispose();
+  }
+
+  // ===== Initialization Methods =====
+  void _initializeAnimations() {
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -64,8 +83,9 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     ));
 
     _fadeController.forward();
-    _loadMockPhotos();
+  }
 
+  void _initializeListeners() {
     _commentInputController.addListener(() {
       setState(() {
         _isCommentEmpty = _commentInputController.text.trim().isEmpty;
@@ -79,8 +99,8 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     });
   }
 
+  // ===== Data Loading Methods =====
   void _loadMockPhotos() {
-    // Mock data for testing
     final now = DateTime.now();
     setState(() {
       _photos = [
@@ -121,21 +141,83 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
           comments: [],
           caption: 'Perfect weather for photography',
         ),
-        // Add more mock photos as needed
       ];
     });
   }
 
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    _commentController.dispose();
-    _scrollController.dispose();
-    _commentInputController.dispose();
-    _commentFocus.dispose();
-    super.dispose();
+  // ===== Helper Methods =====
+  String _getTimeString(DateTime time) {
+    final now = DateTime.now();
+    final difference = now.difference(time);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
   }
 
+  String _getUnlockTimeString(DateTime unlockTime) {
+    final now = DateTime.now();
+    final difference = unlockTime.difference(now);
+
+    final hours = difference.inHours;
+    final minutes = difference.inMinutes % 60;
+
+    return '${hours}h ${minutes}m';
+  }
+
+  // ===== Event Handlers =====
+  void _showCalendarOverlay(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => CalendarOverlay(
+        photos: _photos,
+        onClose: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
+  void _showCommentsOverlay(BuildContext context, SocialPhoto photo) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => CommentsOverlay(
+        photo: photo,
+        onClose: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
+  void _showCommentInput(BuildContext context, SocialPhoto photo) {
+    setState(() {
+      _activeCommentPhoto = photo;
+    });
+    _commentController.forward();
+    _commentFocus.requestFocus();
+  }
+
+  void _hideCommentInput() async {
+    _commentFocus.unfocus();
+    await _commentController.reverse();
+    if (mounted) {
+      setState(() {
+        _activeCommentPhoto = null;
+        _commentInputController.clear();
+      });
+    }
+  }
+
+  // ===== UI Building Methods =====
   Widget _buildProgressiveImage(String url, {bool shouldBlur = false}) {
     return Stack(
       fit: StackFit.expand,
@@ -206,6 +288,35 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     );
   }
 
+  Widget _buildActionButton({
+    required IconData icon,
+    required int count,
+    Color color = Colors.white,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 24.sp,
+          ),
+          SizedBox(width: 8.w),
+          Text(
+            count.toString(),
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 15.sp,
+              letterSpacing: -0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPhotoCard(SocialPhoto photo) {
     final size = MediaQuery.of(context).size;
     final photoSize = size.width * 0.85;
@@ -217,7 +328,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
         children: [
           // User info header
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             child: Row(
               children: [
                 Container(
@@ -324,8 +435,8 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                                   SizedBox(height: 16.h),
                                   Container(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: 20.w,
-                                      vertical: 10.h,
+                                      horizontal: 16.w,
+                                      vertical: 8.h,
                                     ),
                                     decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.1),
@@ -509,92 +620,6 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     );
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required int count,
-    Color color = Colors.white,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 24.sp,
-          ),
-          SizedBox(width: 8.w),
-          Text(
-            count.toString(),
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 15.sp,
-              letterSpacing: -0.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getTimeString(DateTime time) {
-    final now = DateTime.now();
-    final difference = now.difference(time);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
-  String _getUnlockTimeString(DateTime unlockTime) {
-    final now = DateTime.now();
-    final difference = unlockTime.difference(now);
-
-    final hours = difference.inHours;
-    final minutes = difference.inMinutes % 60;
-
-    return '${hours}h ${minutes}m';
-  }
-
-  void _showCommentsOverlay(BuildContext context, SocialPhoto photo) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => CommentsOverlay(
-        photo: photo,
-        onClose: () => Navigator.of(context).pop(),
-      ),
-    );
-  }
-
-  void _showCommentInput(BuildContext context, SocialPhoto photo) {
-    setState(() {
-      _activeCommentPhoto = photo;
-    });
-    _commentController.forward();
-    _commentFocus.requestFocus();
-  }
-
-  void _hideCommentInput() async {
-    _commentFocus.unfocus();
-    await _commentController.reverse();
-    if (mounted) {
-      setState(() {
-        _activeCommentPhoto = null;
-        _commentInputController.clear();
-      });
-    }
-  }
-
   Widget _buildFloatingCommentInput() {
     if (_activeCommentPhoto == null) return const SizedBox.shrink();
 
@@ -637,19 +662,6 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showCalendarOverlay(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => CalendarOverlay(
-        photos: _photos,
-        onClose: () => Navigator.of(context).pop(),
       ),
     );
   }
@@ -747,7 +759,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                               child: Column(
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.all(20.w),
+                                    padding: EdgeInsets.all(16.w),
                                     decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.1),
                                       shape: BoxShape.circle,
@@ -935,7 +947,7 @@ class _CommentsOverlayState extends State<CommentsOverlay>
         children: [
           // Handle bar and header
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
@@ -998,7 +1010,7 @@ class _CommentsOverlayState extends State<CommentsOverlay>
           // Comments list
           Expanded(
             child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               itemCount: widget.photo.comments.length,
               itemBuilder: (context, index) {
                 return _buildCommentItem(widget.photo.comments[index]);
@@ -1210,7 +1222,7 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
+      height: MediaQuery.of(context).size.height * 0.62,
       decoration: BoxDecoration(
         color: const Color(0xFF1C1C1E),
         borderRadius: BorderRadius.vertical(
@@ -1221,7 +1233,7 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
         children: [
           // Handle bar and header
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+            padding: EdgeInsets.fromLTRB(16.w, 12.h, 8.w, 4.h),
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
@@ -1236,7 +1248,7 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
                 Container(
                   width: 36.w,
                   height: 4.h,
-                  margin: EdgeInsets.only(bottom: 16.h),
+                  margin: EdgeInsets.only(bottom: 8.h),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(2.r),
@@ -1244,6 +1256,7 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
                 ),
                 // Header
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Calendar',
@@ -1254,7 +1267,6 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
                         letterSpacing: -0.3,
                       ),
                     ),
-                    const Spacer(),
                     IconButton(
                       onPressed: widget.onClose,
                       icon: Icon(
@@ -1276,7 +1288,7 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
               focusedDay: _focusedDay,
               selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
               calendarFormat: CalendarFormat.month,
-              startingDayOfWeek: StartingDayOfWeek.monday,
+              startingDayOfWeek: StartingDayOfWeek.sunday,
               headerStyle: HeaderStyle(
                 titleTextStyle: TextStyle(
                   color: Colors.white,
@@ -1286,15 +1298,16 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
                 ),
                 formatButtonVisible: false,
                 leftChevronIcon: Icon(
-                  Icons.chevron_left_rounded,
+                  HugeIcons.strokeRoundedArrowLeft01,
                   color: Colors.white54,
                   size: 24.sp,
                 ),
                 rightChevronIcon: Icon(
-                  Icons.chevron_right_rounded,
+                  HugeIcons.strokeRoundedArrowRight01,
                   color: Colors.white54,
                   size: 24.sp,
                 ),
+                rightChevronVisible: true,
               ),
               daysOfWeekStyle: DaysOfWeekStyle(
                 weekdayStyle: TextStyle(
@@ -1361,30 +1374,53 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
                 ),
               ),
             ),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              itemCount: _getPhotosForDay(_selectedDay).length,
-              itemBuilder: (context, index) {
-                final photo = _getPhotosForDay(_selectedDay)[index];
-                return Container(
-                  width: 88.w,
-                  margin: EdgeInsets.only(right: 12.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
-                      width: 1,
+            child: _getPhotosForDay(_selectedDay).isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          HugeIcons.strokeRoundedAlbumNotFound02,
+                          color: Colors.white38,
+                          size: 24.sp,
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          'No photos taken on this day',
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 13.sp,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ],
                     ),
-                    image: DecorationImage(
-                      image: NetworkImage(photo.photoUrl),
-                      fit: BoxFit.cover,
-                    ),
+                  )
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    itemCount: _getPhotosForDay(_selectedDay).length,
+                    itemBuilder: (context, index) {
+                      final photo = _getPhotosForDay(_selectedDay)[index];
+                      return Container(
+                        width: 88.w,
+                        margin: EdgeInsets.only(right: 12.w),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 1,
+                          ),
+                          image: DecorationImage(
+                            image: NetworkImage(photo.photoUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
+          SizedBox(height: 16.h),
         ],
       ),
     );
