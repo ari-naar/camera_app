@@ -55,7 +55,7 @@ class _CalendarOverlayState extends State<CalendarOverlay> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.62,
+      height: MediaQuery.of(context).size.height * 0.65,
       decoration: BoxDecoration(
         color: const Color(0xFF1C1C1E),
         borderRadius: BorderRadius.vertical(
