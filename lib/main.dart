@@ -18,17 +18,29 @@ Future<void> main() async {
   }
 
   final prefs = await SharedPreferences.getInstance();
+  final hasCompletedOnboarding =
+      prefs.getBool('hasCompletedOnboarding') ?? false;
+  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(prefs),
-      child: const MyApp(),
+      child: MyApp(
+        initialRoute: hasCompletedOnboarding
+            ? (isLoggedIn ? '/home' : '/social')
+            : '/welcome',
+      ),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+
+  const MyApp({
+    super.key,
+    required this.initialRoute,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +53,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Camera App',
           theme: themeProvider.theme,
-          initialRoute: '/home',
+          initialRoute: initialRoute,
           onGenerateRoute: NavigationController.onGenerateRoute,
         );
       },

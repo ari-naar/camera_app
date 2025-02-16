@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'dart:math' as math;
 import '../../main.dart';
 import '../../navigation/navigation_controller.dart';
@@ -405,27 +406,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Photos Left Counter
           SafeArea(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                margin: EdgeInsets.only(top: 16.h),
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.23),
-                  borderRadius: BorderRadius.circular(6.r),
-                ),
-                child: Text(
-                  _photosLeft == 1
-                      ? '1 SHOT LEFT'
-                      : '${_photosLeft} SHOTS LEFT',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 16.w),
+                  child: IconButton(
+                    onPressed: () {
+                      NavigationController.navigateToSocial(context);
+                    },
+                    icon: Icon(
+                      HugeIcons.strokeRoundedUserGroup,
+                      color: Colors.white,
+                      size: 24.sp,
+                    ),
                   ),
                 ),
-              ),
+                Container(
+                  margin: EdgeInsets.only(top: 16.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.23),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Text(
+                    _photosLeft == 1
+                        ? '1 SHOT LEFT'
+                        : '${_photosLeft} SHOTS LEFT',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 56.w), // Balance for social button
+              ],
             ),
           ),
 

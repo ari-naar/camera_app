@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../navigation/navigation_controller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -285,9 +286,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             SlideTransition(
                               position: _featureSlideAnimation,
                               child: ElevatedButton(
-                                onPressed: () =>
+                                onPressed: () async {
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.setBool(
+                                      'hasCompletedOnboarding', true);
+                                  if (mounted) {
                                     NavigationController.navigateToAuth(
-                                        context),
+                                        context);
+                                  }
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
                                   foregroundColor: Colors.black,

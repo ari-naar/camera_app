@@ -4,6 +4,9 @@ import '../screens/onboarding/welcome_screen.dart';
 import '../screens/auth/auth_screen.dart';
 import '../screens/preview/photo_preview_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/social/social_feed_screen.dart';
+import '../screens/social/photo_detail_screen.dart';
+import '../models/social_photo.dart';
 
 class NavigationController {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -19,6 +22,11 @@ class NavigationController {
         return MaterialPageRoute(
           builder: (_) => PhotoPreviewScreen(photo: photo),
         );
+      case '/social':
+        return MaterialPageRoute(builder: (_) => const SocialFeedScreen());
+      case '/photo-detail':
+        final photo = settings.arguments as SocialPhoto;
+        return PhotoDetailRoute(photo: photo);
       default:
         return MaterialPageRoute(builder: (_) => const WelcomeScreen());
     }
@@ -38,5 +46,13 @@ class NavigationController {
 
   static void navigateToPreview(BuildContext context, XFile photo) {
     Navigator.pushNamed(context, '/preview', arguments: photo);
+  }
+
+  static void navigateToSocial(BuildContext context) {
+    Navigator.pushNamed(context, '/social');
+  }
+
+  static void navigateToPhotoDetail(BuildContext context, SocialPhoto photo) {
+    Navigator.pushNamed(context, '/photo-detail', arguments: photo);
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../navigation/navigation_controller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -47,10 +48,14 @@ class _AuthScreenState extends State<AuthScreen>
     });
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       // TODO: Implement actual authentication
-      NavigationController.navigateToHome(context);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      if (mounted) {
+        NavigationController.navigateToHome(context);
+      }
     }
   }
 
