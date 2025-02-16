@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../navigation/navigation_controller.dart';
+import '../../services/haptics_service.dart';
 import 'dart:ui';
 
 class ProfileScreen extends StatefulWidget {
@@ -15,9 +16,33 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isNotificationsEnabled = true;
+  bool _isHapticsEnabled = true;
   final _usernameController = TextEditingController(text: 'sarahp');
   final _usernameFocusNode = FocusNode();
   bool _isEditingUsername = false;
+  final _hapticsService = HapticsService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    setState(() {
+      _isHapticsEnabled = _hapticsService.isEnabled;
+    });
+  }
+
+  Future<void> _toggleHaptics(bool value) async {
+    await _hapticsService.setEnabled(value);
+    setState(() {
+      _isHapticsEnabled = value;
+    });
+    if (value) {
+      _hapticsService.selectionClick();
+    }
+  }
 
   @override
   void dispose() {
@@ -84,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 // Profile Header
                 Padding(
-                  padding: EdgeInsets.all(24.w),
+                  padding: EdgeInsets.fromLTRB(24.w, 24.h, 24.w, 16.h),
                   child: Column(
                     children: [
                       // Profile Picture
@@ -178,279 +203,256 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                       ),
-                      SizedBox(height: 16.h),
-                      // Stats Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildStat('Photos', '127'),
-                          Container(
-                            width: 1,
-                            height: 24.h,
-                            margin: EdgeInsets.symmetric(horizontal: 24.w),
-                            color: Colors.white24,
+                    ],
+                  ),
+                ),
+                // Stats Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildStat('Photos', '127'),
+                    Container(
+                      width: 1,
+                      height: 24.h,
+                      margin: EdgeInsets.symmetric(horizontal: 24.w),
+                      color: Colors.white24,
+                    ),
+                    _buildStat('Friends', '48'),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+              ],
+            ),
+          ),
+
+          // Settings Sections
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Preferences
+                Container(
+                  margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                        child: Text(
+                          'Preferences',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17.sp,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.3,
                           ),
-                          _buildStat('Friends', '48'),
-                        ],
+                        ),
+                      ),
+                      _buildSettingsTile(
+                        icon: HugeIcons.strokeRoundedNotification01,
+                        title: 'Notifications',
+                        trailing: CupertinoSwitch(
+                          value: _isNotificationsEnabled,
+                          onChanged: (value) {
+                            setState(() => _isNotificationsEnabled = value);
+                          },
+                          activeColor: Colors.blue,
+                        ),
+                      ),
+                      _buildSettingsTile(
+                        icon: HugeIcons.strokeRoundedTap06,
+                        title: 'Haptic Feedback',
+                        trailing: CupertinoSwitch(
+                          value: _isHapticsEnabled,
+                          onChanged: _toggleHaptics,
+                          activeColor: Colors.blue,
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                // Settings Sections
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Account Settings
-                    Container(
-                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-                            child: Text(
-                              'Account',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 17.sp,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                          ),
-                          _buildSettingsTile(
-                            icon: HugeIcons.strokeRoundedUserGroup,
-                            title: 'Find Friends',
-                            onTap: () {
-                              Navigator.pushReplacementNamed(context, '/social',
-                                  arguments: true);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Preferences
-                    Container(
-                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-                            child: Text(
-                              'Preferences',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 17.sp,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                          ),
-                          _buildSettingsTile(
-                            icon: HugeIcons.strokeRoundedNotification01,
-                            title: 'Notifications',
-                            trailing: CupertinoSwitch(
-                              value: _isNotificationsEnabled,
-                              onChanged: (value) {
-                                setState(() => _isNotificationsEnabled = value);
-                              },
-                              activeColor: Colors.blue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Legal & Support
-                    Container(
-                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-                            child: Text(
-                              'Legal & Support',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 17.sp,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                          ),
-                          _buildSettingsTile(
-                            icon: HugeIcons.strokeRoundedLegalDocument01,
-                            title: 'Terms & Conditions',
-                            onTap: () {
-                              // TODO: Show T&Cs
-                            },
-                            trailingIcon: HugeIcons.strokeRoundedLinkSquare01,
-                          ),
-                          _buildSettingsTile(
-                            icon: HugeIcons.strokeRoundedLock,
-                            title: 'Privacy Policy',
-                            onTap: () {
-                              // TODO: Show Privacy Policy
-                            },
-                            trailingIcon: HugeIcons.strokeRoundedLinkSquare01,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Sign Out Section
-                    Container(
-                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0.h),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      child: _buildSettingsTile(
-                        icon: HugeIcons.strokeRoundedLogout01,
-                        title: 'Sign Out',
-                        textColor: Colors.red,
-                        trailing: SizedBox(width: 24.w),
-                        onTap: () async {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setBool('isLoggedIn', false);
-                          if (mounted) {
-                            NavigationController.navigateToAuth(context);
-                          }
-                        },
-                      ),
-                    ),
-
-                    // Delete Account
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                      child: TextButton(
-                        onPressed: () {
-                          // TODO: Handle delete account logic (e.g., show confirmation dialog)
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white.withOpacity(0.4),
-                        ),
+                // Legal & Support
+                Container(
+                  margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
                         child: Text(
-                          'Delete Account',
+                          'Legal & Support',
                           style: TextStyle(
-                            fontSize: 15.sp,
+                            color: Colors.white,
+                            fontSize: 17.sp,
+                            fontWeight: FontWeight.w600,
                             letterSpacing: -0.3,
                           ),
                         ),
                       ),
-                    ),
+                      _buildSettingsTile(
+                        icon: HugeIcons.strokeRoundedLegalDocument01,
+                        title: 'Terms & Conditions',
+                        onTap: () {
+                          // TODO: Show T&Cs
+                        },
+                        trailingIcon: HugeIcons.strokeRoundedLinkSquare01,
+                      ),
+                      _buildSettingsTile(
+                        icon: HugeIcons.strokeRoundedLock,
+                        title: 'Privacy Policy',
+                        onTap: () {
+                          // TODO: Show Privacy Policy
+                        },
+                        trailingIcon: HugeIcons.strokeRoundedLinkSquare01,
+                      ),
+                    ],
+                  ),
+                ),
 
-                    // App Information
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 24.w),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            height: 72.w,
-                            width: 72.w,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(16.r),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'LOGO',
-                                style: TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 13.sp,
-                                  letterSpacing: 1,
-                                ),
-                              ),
+                // Sign Out Section
+                Container(
+                  margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: _buildSettingsTile(
+                    icon: HugeIcons.strokeRoundedLogout01,
+                    title: 'Sign Out',
+                    textColor: Colors.red,
+                    trailing: SizedBox(width: 24.w),
+                    onTap: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('isLoggedIn', false);
+                      if (mounted) {
+                        NavigationController.navigateToAuth(context);
+                      }
+                    },
+                  ),
+                ),
+
+                // Delete Account
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                  child: TextButton(
+                    onPressed: () {
+                      // TODO: Handle delete account logic (e.g., show confirmation dialog)
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white.withOpacity(0.4),
+                    ),
+                    child: Text(
+                      'Delete Account',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // App Information
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 72.w,
+                        width: 72.w,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16.r),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'LOGO',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 13.sp,
+                              letterSpacing: 1,
                             ),
                           ),
-                          SizedBox(height: 6.h),
+                        ),
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        'Camera App',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17.sp,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      Text(
+                        'Version 1.0.0 (1)',
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: 15.sp,
+                          letterSpacing: -0.3,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: 24.h),
+                      Row(
+                        children: [
+                          Text(
+                            '© ${DateTime.now().year}',
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 15.sp,
+                              letterSpacing: -0.3,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          SizedBox(width: 6.w),
                           Text(
                             'Camera App',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17.sp,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          Text(
-                            'Version 1.0.0 (1)',
                             style: TextStyle(
                               color: Colors.white54,
                               fontSize: 15.sp,
                               letterSpacing: -0.3,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ),
-                          SizedBox(height: 24.h),
-                          Row(
-                            children: [
-                              Text(
-                                '© ${DateTime.now().year}',
-                                style: TextStyle(
-                                  color: Colors.white38,
-                                  fontSize: 15.sp,
-                                  letterSpacing: -0.3,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              SizedBox(width: 6.w),
-                              Text(
-                                'Camera App',
-                                style: TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 15.sp,
-                                  letterSpacing: -0.3,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'Made in Sydney',
-                                style: TextStyle(
-                                  color: Colors.white38,
-                                  fontSize: 15.sp,
-                                  letterSpacing: -0.3,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              SizedBox(width: 6.w),
-                              Text(
-                                '🦘',
-                                style: TextStyle(
-                                  fontSize: 15.sp,
-                                  letterSpacing: -0.3,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
-                    ),
-                    SizedBox(height: 48.h),
-                  ],
+                      Row(
+                        children: [
+                          Text(
+                            'Made in Sydney',
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 15.sp,
+                              letterSpacing: -0.3,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          SizedBox(width: 6.w),
+                          Text(
+                            '🦘',
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              letterSpacing: -0.3,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
+                SizedBox(height: 48.h),
               ],
             ),
           ),

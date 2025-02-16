@@ -280,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.error_outline,
+                HugeIcons.strokeRoundedCameraOff02,
                 color: Colors.red,
                 size: 48.r,
               ),

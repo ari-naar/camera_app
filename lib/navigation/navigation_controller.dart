@@ -25,21 +25,7 @@ class NavigationController {
         );
       case '/social':
         return MaterialPageRoute(
-          builder: (context) {
-            final showAddFriendModal = settings.arguments as bool? ?? false;
-            if (showAddFriendModal) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  barrierColor: Colors.black.withOpacity(0.5),
-                  builder: (context) => const AddFriendModal(),
-                );
-              });
-            }
-            return const SocialFeedScreen();
-          },
+          builder: (_) => const SocialFeedScreen(),
         );
       case '/photo-detail':
         final photo = settings.arguments as SocialPhoto;

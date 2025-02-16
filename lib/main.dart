@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:camera/camera.dart';
 import 'navigation/navigation_controller.dart';
 import 'theme/theme_provider.dart';
+import 'services/haptics_service.dart';
 
 List<CameraDescription> cameras = [];
 
@@ -21,6 +22,9 @@ Future<void> main() async {
   final hasCompletedOnboarding =
       prefs.getBool('hasCompletedOnboarding') ?? false;
   final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+  // Initialize haptics service
+  await HapticsService().initialize();
 
   runApp(
     ChangeNotifierProvider(

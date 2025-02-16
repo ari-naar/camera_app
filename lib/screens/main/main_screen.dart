@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../home/home_screen.dart';
 import '../social/social_feed_screen.dart';
 import '../../widgets/shared_header.dart';
+import '../../services/haptics_service.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MainScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final PageController _pageController = PageController();
   bool _showHeader = false;
+  final _hapticsService = HapticsService();
 
   @override
   void dispose() {
@@ -25,6 +27,7 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _showHeader = !_showHeader;
     });
+    _hapticsService.mediumImpact();
   }
 
   @override
