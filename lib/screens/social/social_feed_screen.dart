@@ -323,13 +323,13 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     final photoSize = size.width * 0.85;
 
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 24.h),
+      margin: EdgeInsets.symmetric(vertical: 12.h),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // User info header
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             child: Row(
               children: [
                 Container(
@@ -810,7 +810,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                   ),
 
                   // Bottom spacing
-                  SliverPadding(padding: EdgeInsets.only(bottom: 32.h)),
+                  SliverPadding(padding: EdgeInsets.only(bottom: 18.h)),
                 ],
               ),
             ),
