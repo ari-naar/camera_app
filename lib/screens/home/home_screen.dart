@@ -6,9 +6,15 @@ import 'package:hugeicons/hugeicons.dart';
 import 'dart:math' as math;
 import '../../main.dart';
 import '../../navigation/navigation_controller.dart';
+import '../../widgets/shared_header.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool showHeader;
+
+  const HomeScreen({
+    super.key,
+    this.showHeader = true,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -26,7 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
   double _currentZoomLevel = 1.0;
   double _baseZoomLevel = 1.0;
   int _currentCameraIndex = 0;
-  bool _isCapturing = false;
 
   @override
   void initState() {
@@ -266,106 +271,6 @@ class _HomeScreenState extends State<HomeScreen> {
     NavigationController.navigateToPreview(context, _capturedPhotos.last);
   }
 
-  Widget _buildCameraPreview() {
-    if (_controller == null ||
-        !_isInitialized ||
-        !_controller!.value.isInitialized) {
-      return Container(color: Colors.black);
-    }
-
-    final size = MediaQuery.of(context).size;
-    var scale = size.aspectRatio * _controller!.value.aspectRatio;
-
-    if (scale < 1) scale = 1 / scale;
-
-    // Calculate viewport dimensions for 16:9 vertical aspect ratio
-    final viewportWidth = size.width * 0.75;
-    final viewportHeight = viewportWidth * (16 / 9);
-
-    return GestureDetector(
-      onScaleStart: _handleScaleStart,
-      onScaleUpdate: _handleScaleUpdate,
-      onScaleEnd: _handleScaleEnd,
-      onDoubleTap: _handleDoubleTap,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Black background
-          Container(color: Colors.black),
-
-          // Centered viewfinder
-          Center(
-            child: Stack(
-              children: [
-                // Main container
-                Container(
-                  width: viewportWidth * 0.8,
-                  height: viewportHeight * 0.8,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(32.r),
-                  ),
-                  child: Stack(
-                    children: [
-                      // Camera preview
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(32.r),
-                        child: Transform.scale(
-                          scale: scale,
-                          child: Center(
-                            child: CameraPreview(_controller!),
-                          ),
-                        ),
-                      ),
-
-                      // Inner border
-                      Positioned.fill(
-                        child: Container(
-                          margin: EdgeInsets.all(14.w),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24.r),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1.w,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Top-left corner decoration
-                      Positioned(
-                        top: 28.h,
-                        left: 28.w,
-                        child: Container(
-                          width: 16.w,
-                          height: 16.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(8.r),
-                            ),
-                            border: Border(
-                              top: BorderSide(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1.5.w,
-                              ),
-                              left: BorderSide(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1.5.w,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
@@ -398,88 +303,157 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
+      appBar: widget.showHeader ? const SharedHeader() : null,
+      body: Column(
         children: [
-          // Camera Preview
-          _buildCameraPreview(),
-
-          // Photos Left Counter
-          SafeArea(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 16.w),
-                  child: IconButton(
-                    onPressed: () {
-                      NavigationController.navigateToSocial(context);
-                    },
-                    icon: Icon(
-                      HugeIcons.strokeRoundedUserGroup,
-                      color: Colors.white,
-                      size: 24.sp,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.only(top: 16.h),
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.23),
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Text(
-                    _photosLeft == 1
-                        ? '1 SHOT LEFT'
-                        : '${_photosLeft} SHOTS LEFT',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 56.w), // Balance for social button
-              ],
+          // Shots Counter
+          Container(
+            margin: EdgeInsets.only(top: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.23),
+              borderRadius: BorderRadius.circular(6.r),
+            ),
+            child: Text(
+              _photosLeft == 1 ? '1 SHOT LEFT' : '${_photosLeft} SHOTS LEFT',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1,
+              ),
             ),
           ),
 
-          // Shutter Button
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 48.h,
-            child: Center(
-              child: GestureDetector(
-                onTap: _photosLeft > 0 ? _capturePhoto : null,
-                child: Container(
-                  width: 64.w,
-                  height: 64.w,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 3.w,
+          // Camera Preview and Shutter Button Container
+          Expanded(
+            child: Stack(
+              children: [
+                // Camera Preview
+                Center(
+                  child: _buildCameraPreview(),
+                ),
+
+                // Shutter Button
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 48.h,
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _photosLeft > 0 ? _capturePhoto : null,
+                      child: Container(
+                        width: 64.w,
+                        height: 64.w,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 3.w,
+                          ),
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 48.w,
+                            height: 48.w,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  child: Center(
-                    child: Container(
-                      width: 48.w,
-                      height: 48.w,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCameraPreview() {
+    if (_controller == null ||
+        !_isInitialized ||
+        !_controller!.value.isInitialized) {
+      return Container(color: Colors.black);
+    }
+
+    final size = MediaQuery.of(context).size;
+    var scale = size.aspectRatio * _controller!.value.aspectRatio;
+
+    if (scale < 1) scale = 1 / scale;
+
+    // Calculate viewport dimensions for 16:9 vertical aspect ratio
+    final viewportWidth = size.width * 0.6;
+    final viewportHeight = viewportWidth * (16 / 9);
+
+    return GestureDetector(
+      onScaleStart: _handleScaleStart,
+      onScaleUpdate: _handleScaleUpdate,
+      onScaleEnd: _handleScaleEnd,
+      onDoubleTap: _handleDoubleTap,
+      child: Container(
+        width: viewportWidth,
+        height: viewportHeight,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32.r),
+        ),
+        child: Stack(
+          children: [
+            // Camera preview
+            ClipRRect(
+              borderRadius: BorderRadius.circular(32.r),
+              child: Transform.scale(
+                scale: scale,
+                child: Center(
+                  child: CameraPreview(_controller!),
+                ),
+              ),
+            ),
+
+            // Inner border
+            Positioned.fill(
+              child: Container(
+                margin: EdgeInsets.all(14.w),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24.r),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1.w,
+                  ),
+                ),
+              ),
+            ),
+
+            // Top-left corner decoration
+            Positioned(
+              top: 28.h,
+              left: 28.w,
+              child: Container(
+                width: 18.w,
+                height: 18.w,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(8.r),
+                  ),
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1.5.w,
+                    ),
+                    left: BorderSide(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1.5.w,
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

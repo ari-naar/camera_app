@@ -8,10 +8,16 @@ import 'dart:io';
 import 'dart:ui';
 import '../../models/social_photo.dart';
 import '../../navigation/navigation_controller.dart';
+import '../../widgets/shared_header.dart';
 import '../profile/user_profile_screen.dart';
 
 class SocialFeedScreen extends StatefulWidget {
-  const SocialFeedScreen({super.key});
+  final bool showHeader;
+
+  const SocialFeedScreen({
+    super.key,
+    this.showHeader = true,
+  });
 
   @override
   State<SocialFeedScreen> createState() => _SocialFeedScreenState();
@@ -671,152 +677,78 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  // App Bar
-                  SliverAppBar(
-                    backgroundColor: Colors.black.withOpacity(0.8),
-                    floating: false,
-                    pinned: true,
-                    elevation: 0,
-                    flexibleSpace: ClipRect(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          color: Colors.transparent,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      'Daily Feed',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22.sp,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    leading: IconButton(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          barrierColor: Colors.black.withOpacity(0.5),
-                          builder: (context) => const AddFriendModal(),
-                        );
-                      },
-                      icon: Icon(
-                        HugeIcons.strokeRoundedUserAdd01,
-                        color: Colors.white,
-                        size: 24.sp,
-                      ),
-                    ),
-                    actions: [
-                      IconButton(
-                        onPressed: () => _showCalendarOverlay(context),
-                        icon: Icon(
-                          HugeIcons.strokeRoundedCalendar01,
-                          color: Colors.white,
-                          size: 24.sp,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          NavigationController.navigateToProfile(context);
-                        },
-                        icon: Container(
-                          width: 32.w,
-                          height: 32.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white24,
-                              width: 1.w,
+      appBar: widget.showHeader ? const SharedHeader() : null,
+      body: Stack(
+        children: [
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                // Photo List
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (_photos.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 40.w,
+                              vertical: 60.h,
                             ),
-                            image: const DecorationImage(
-                              image: NetworkImage(
-                                  'https://i.pravatar.cc/150?img=1'),
-                              fit: BoxFit.cover,
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(16.w),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    HugeIcons.strokeRoundedImageAdd01,
+                                    color: Colors.white54,
+                                    size: 48.sp,
+                                  ),
+                                ),
+                                SizedBox(height: 24.h),
+                                Text(
+                                  'No photos yet',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20.sp,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  'Photos from your friends will appear here.\nTake some photos to share with them!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white54,
+                                    fontSize: 15.sp,
+                                    height: 1.4,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ),
-                      SizedBox(width: 8.w), // Add some padding at the end
-                    ],
+                        );
+                      }
+                      return _buildPhotoCard(_photos[index]);
+                    },
+                    childCount: _photos.isEmpty ? 1 : _photos.length,
                   ),
+                ),
 
-                  // Photo List
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (_photos.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 40.w,
-                                vertical: 60.h,
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(16.w),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      HugeIcons.strokeRoundedImageAdd01,
-                                      color: Colors.white54,
-                                      size: 48.sp,
-                                    ),
-                                  ),
-                                  SizedBox(height: 24.h),
-                                  Text(
-                                    'No photos yet',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20.sp,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8.h),
-                                  Text(
-                                    'Photos from your friends will appear here.\nTake some photos to share with them!',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 15.sp,
-                                      height: 1.4,
-                                      letterSpacing: -0.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-                        return _buildPhotoCard(_photos[index]);
-                      },
-                      childCount: _photos.isEmpty ? 1 : _photos.length,
-                    ),
-                  ),
-
-                  // Bottom spacing
-                  SliverPadding(padding: EdgeInsets.only(bottom: 18.h)),
-                ],
-              ),
+                // Bottom spacing
+                SliverPadding(padding: EdgeInsets.only(bottom: 18.h)),
+              ],
             ),
-            _buildFloatingCommentInput(),
-          ],
-        ),
+          ),
+          _buildFloatingCommentInput(),
+        ],
       ),
     );
   }

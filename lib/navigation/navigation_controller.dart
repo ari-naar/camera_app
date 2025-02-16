@@ -3,7 +3,7 @@ import 'package:camera/camera.dart';
 import '../screens/onboarding/welcome_screen.dart';
 import '../screens/auth/auth_screen.dart';
 import '../screens/preview/photo_preview_screen.dart';
-import '../screens/home/home_screen.dart';
+import '../screens/main/main_screen.dart';
 import '../screens/social/social_feed_screen.dart';
 import '../screens/social/photo_detail_screen.dart';
 import '../screens/profile/profile_screen.dart';
@@ -17,7 +17,7 @@ class NavigationController {
       case '/auth':
         return MaterialPageRoute(builder: (_) => const AuthScreen());
       case '/home':
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(builder: (_) => const MainScreen());
       case '/preview':
         final photo = settings.arguments as XFile;
         return MaterialPageRoute(
@@ -69,7 +69,7 @@ class NavigationController {
 
   static void navigateToSocial(BuildContext context,
       {bool showAddFriendModal = false}) {
-    Navigator.pushNamed(context, '/social');
+    Navigator.pushNamed(context, '/social', arguments: showAddFriendModal);
   }
 
   static void navigateToPhotoDetail(BuildContext context, SocialPhoto photo) {

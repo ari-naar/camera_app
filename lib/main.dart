@@ -26,9 +26,8 @@ Future<void> main() async {
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(prefs),
       child: MyApp(
-        initialRoute: hasCompletedOnboarding
-            ? (isLoggedIn ? '/home' : '/social')
-            : '/welcome',
+        initialRoute:
+            hasCompletedOnboarding ? (isLoggedIn ? '/home' : '/home') : '/home',
       ),
     ),
   );
