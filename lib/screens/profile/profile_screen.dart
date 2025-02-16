@@ -199,6 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 // Settings Sections
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Account Settings
                     Container(
@@ -227,13 +228,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: 'Find Friends',
                             onTap: () {
                               NavigationController.navigateToAddFriend(context);
-                            },
-                          ),
-                          _buildSettingsTile(
-                            icon: HugeIcons.strokeRoundedLock,
-                            title: 'Privacy',
-                            onTap: () {
-                              // TODO: Navigate to privacy settings
                             },
                           ),
                         ],
@@ -305,6 +299,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: () {
                               // TODO: Show T&Cs
                             },
+                            trailingIcon: HugeIcons.strokeRoundedLinkSquare01,
+                          ),
+                          _buildSettingsTile(
+                            icon: HugeIcons.strokeRoundedLock,
+                            title: 'Privacy Policy',
+                            onTap: () {
+                              // TODO: Show Privacy Policy
+                            },
+                            trailingIcon: HugeIcons.strokeRoundedLinkSquare01,
                           ),
                         ],
                       ),
@@ -330,6 +333,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                     ),
+
+                    // Delete Account
+
+                    // App Information
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 72.w,
+                            width: 72.w,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(16.r),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'LOGO',
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 13.sp,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            'Camera App',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17.sp,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          Text(
+                            'Version 1.0.0 (1)',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 15.sp,
+                              letterSpacing: -0.3,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          Row(
+                            children: [
+                              Text(
+                                '© ${DateTime.now().year}',
+                                style: TextStyle(
+                                  color: Colors.white38,
+                                  fontSize: 15.sp,
+                                  letterSpacing: -0.3,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              SizedBox(width: 6.w),
+                              Text(
+                                'Camera App',
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 15.sp,
+                                  letterSpacing: -0.3,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                'Made in Sydney',
+                                style: TextStyle(
+                                  color: Colors.white38,
+                                  fontSize: 15.sp,
+                                  letterSpacing: -0.3,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              SizedBox(width: 6.w),
+                              Text(
+                                '🦘',
+                                style: TextStyle(
+                                  fontSize: 15.sp,
+                                  letterSpacing: -0.3,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 48.h),
                   ],
                 ),
               ],
@@ -371,6 +470,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Widget? trailing,
     Color? textColor,
     VoidCallback? onTap,
+    IconData? trailingIcon,
   }) {
     return Material(
       color: Colors.transparent,
@@ -407,7 +507,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (trailing != null) trailing,
               if (onTap != null && trailing == null)
                 Icon(
-                  HugeIcons.strokeRoundedArrowRight01,
+                  trailingIcon ?? HugeIcons.strokeRoundedArrowRight01,
                   color: Colors.white54,
                   size: 20.sp,
                 ),
