@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'dart:io';
 import 'dart:ui';
 import '../../models/social_photo.dart';
@@ -406,7 +407,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                   children: [
                     _buildActionButton(
                       icon: photo.isLikedByMe
-                          ? HugeIcons.solidRoundedFavourite
+                          ? HugeIcons.solidStandardFavourite
                           : HugeIcons.strokeRoundedFavourite,
                       color: photo.isLikedByMe ? Colors.red : Colors.white,
                       count: photo.likeCount,
@@ -640,6 +641,19 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     );
   }
 
+  void _showCalendarOverlay(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => CalendarOverlay(
+        photos: _photos,
+        onClose: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -654,8 +668,18 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                 slivers: [
                   // App Bar
                   SliverAppBar(
-                    backgroundColor: Colors.black,
-                    floating: true,
+                    backgroundColor: Colors.black.withOpacity(0.8),
+                    floating: false,
+                    pinned: true,
+                    elevation: 0,
+                    flexibleSpace: ClipRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          color: Colors.transparent,
+                        ),
+                      ),
+                    ),
                     title: Text(
                       'Daily Feed',
                       style: TextStyle(
@@ -666,24 +690,46 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                       ),
                     ),
                     leading: IconButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        // TODO: Implement add user functionality
+                      },
                       icon: Icon(
-                        HugeIcons.strokeRoundedArrowLeft01,
+                        HugeIcons.strokeRoundedUserAdd01,
                         color: Colors.white,
                         size: 24.sp,
                       ),
                     ),
                     actions: [
                       IconButton(
-                        onPressed: () {
-                          NavigationController.navigateToProfile(context);
-                        },
+                        onPressed: () => _showCalendarOverlay(context),
                         icon: Icon(
-                          HugeIcons.strokeRoundedUser,
+                          HugeIcons.strokeRoundedCalendar01,
                           color: Colors.white,
                           size: 24.sp,
                         ),
                       ),
+                      IconButton(
+                        onPressed: () {
+                          NavigationController.navigateToProfile(context);
+                        },
+                        icon: Container(
+                          width: 32.w,
+                          height: 32.w,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white24,
+                              width: 1.w,
+                            ),
+                            image: const DecorationImage(
+                              image: NetworkImage(
+                                  'https://i.pravatar.cc/150?img=1'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8.w), // Add some padding at the end
                     ],
                   ),
 
@@ -1105,6 +1151,238 @@ class _CommentInputFieldState extends State<CommentInputField> {
                   ),
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CalendarOverlay extends StatefulWidget {
+  final List<SocialPhoto> photos;
+  final VoidCallback onClose;
+
+  const CalendarOverlay({
+    super.key,
+    required this.photos,
+    required this.onClose,
+  });
+
+  @override
+  State<CalendarOverlay> createState() => _CalendarOverlayState();
+}
+
+class _CalendarOverlayState extends State<CalendarOverlay> {
+  late DateTime _focusedDay;
+  late DateTime _selectedDay;
+  late Map<DateTime, List<SocialPhoto>> _photosByDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusedDay = DateTime.now();
+    _selectedDay = _focusedDay;
+    _photosByDate = _groupPhotosByDate();
+  }
+
+  Map<DateTime, List<SocialPhoto>> _groupPhotosByDate() {
+    final Map<DateTime, List<SocialPhoto>> grouped = {};
+    for (var photo in widget.photos) {
+      final date = DateTime(
+        photo.captureTime.year,
+        photo.captureTime.month,
+        photo.captureTime.day,
+      );
+      if (!grouped.containsKey(date)) {
+        grouped[date] = [];
+      }
+      grouped[date]!.add(photo);
+    }
+    return grouped;
+  }
+
+  List<SocialPhoto> _getPhotosForDay(DateTime day) {
+    final date = DateTime(day.year, day.month, day.day);
+    return _photosByDate[date] ?? [];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.7,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24.r),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Handle bar and header
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Column(
+              children: [
+                // Handle bar
+                Container(
+                  width: 36.w,
+                  height: 4.h,
+                  margin: EdgeInsets.only(bottom: 16.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+                // Header
+                Row(
+                  children: [
+                    Text(
+                      'Calendar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: widget.onClose,
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: Colors.white54,
+                        size: 24.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Calendar
+          Expanded(
+            child: TableCalendar(
+              firstDay: DateTime.now().subtract(const Duration(days: 365)),
+              lastDay: DateTime.now(),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              calendarFormat: CalendarFormat.month,
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              headerStyle: HeaderStyle(
+                titleTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3,
+                ),
+                formatButtonVisible: false,
+                leftChevronIcon: Icon(
+                  Icons.chevron_left_rounded,
+                  color: Colors.white54,
+                  size: 24.sp,
+                ),
+                rightChevronIcon: Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white54,
+                  size: 24.sp,
+                ),
+              ),
+              daysOfWeekStyle: DaysOfWeekStyle(
+                weekdayStyle: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 13.sp,
+                  letterSpacing: -0.2,
+                ),
+                weekendStyle: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 13.sp,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              calendarStyle: CalendarStyle(
+                defaultTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15.sp,
+                  letterSpacing: -0.3,
+                ),
+                weekendTextStyle: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 15.sp,
+                  letterSpacing: -0.3,
+                ),
+                outsideTextStyle: TextStyle(
+                  color: Colors.white24,
+                  fontSize: 15.sp,
+                  letterSpacing: -0.3,
+                ),
+                selectedDecoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                ),
+                todayDecoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.blue,
+                    width: 1.5,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                markerDecoration: BoxDecoration(
+                  color: Colors.orange,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              eventLoader: _getPhotosForDay,
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+            ),
+          ),
+          // Selected day's photos
+          Container(
+            height: 120.h,
+            padding: EdgeInsets.symmetric(vertical: 16.h),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              itemCount: _getPhotosForDay(_selectedDay).length,
+              itemBuilder: (context, index) {
+                final photo = _getPhotosForDay(_selectedDay)[index];
+                return Container(
+                  width: 88.w,
+                  margin: EdgeInsets.only(right: 12.w),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1,
+                    ),
+                    image: DecorationImage(
+                      image: NetworkImage(photo.photoUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
