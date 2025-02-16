@@ -4,6 +4,31 @@
 
 ### Firestore Collections
 
+Looking at the current backend architecture, these are designed as three separate top-level (parent) collections in Firestore. However, let me explain why and how they're related:
+
+users - This is a top-level collection where each document represents a unique user
+- Referenced by other collections through userId
+- Standalone collection for user management
+
+photos - This is also a top-level collection containing all photos
+- Links to users through the userId field
+- Referenced by dailyPhotos through photoId
+
+dailyPhotos - Another top-level collection that acts as a join/tracking table
+- Links to users through userId
+- Links to photos through photoId
+
+While they are separate collections, they are integrated through references:
+- A user's photos can be queried using the userId in the photos collection
+- A user's daily photos can be found using the userId in dailyPhotos
+- The full photo details for a daily photo can be fetched using the photoId reference
+
+This structure was chosen because:
+- It provides better scalability for querying
+- Allows independent access to each type of data
+- Makes it easier to implement security rules for different access patterns
+- Prevents the documents from becoming too large (which could happen in a nested structure)
+
 1. **users**
    - Document ID: `userId` (from Firebase Auth)
    - Fields:
