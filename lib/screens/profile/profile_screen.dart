@@ -315,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // Sign Out Section
                     Container(
-                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 32.h),
+                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0.h),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16.r),
@@ -324,6 +324,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         icon: HugeIcons.strokeRoundedLogout01,
                         title: 'Sign Out',
                         textColor: Colors.red,
+                        trailing: SizedBox(width: 24.w),
                         onTap: () async {
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.setBool('isLoggedIn', false);
@@ -335,10 +336,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
 
                     // Delete Account
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                      child: TextButton(
+                        onPressed: () {
+                          // TODO: Handle delete account logic (e.g., show confirmation dialog)
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white.withOpacity(0.4),
+                        ),
+                        child: Text(
+                          'Delete Account',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      ),
+                    ),
 
                     // App Information
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      padding: EdgeInsets.symmetric(horizontal: 24.w),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
