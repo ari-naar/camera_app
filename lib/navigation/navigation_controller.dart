@@ -6,6 +6,8 @@ import '../screens/preview/photo_preview_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/social/social_feed_screen.dart';
 import '../screens/social/photo_detail_screen.dart';
+import '../screens/profile/profile_screen.dart';
+import '../screens/profile/add_friend_screen.dart';
 import '../models/social_photo.dart';
 
 class NavigationController {
@@ -27,6 +29,10 @@ class NavigationController {
       case '/photo-detail':
         final photo = settings.arguments as SocialPhoto;
         return PhotoDetailRoute(photo: photo);
+      case '/profile':
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+      case '/add-friend':
+        return MaterialPageRoute(builder: (_) => const AddFriendScreen());
       default:
         return MaterialPageRoute(builder: (_) => const WelcomeScreen());
     }
@@ -42,6 +48,10 @@ class NavigationController {
 
   static void navigateToProfile(BuildContext context) {
     Navigator.pushNamed(context, '/profile');
+  }
+
+  static void navigateToAddFriend(BuildContext context) {
+    Navigator.pushNamed(context, '/add-friend');
   }
 
   static void navigateToPreview(BuildContext context, XFile photo) {
