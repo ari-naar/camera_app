@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,8 +14,31 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _isDarkMode = true;
   bool _isNotificationsEnabled = true;
+  final _usernameController = TextEditingController(text: '@sarahp');
+  final _usernameFocusNode = FocusNode();
+  bool _isEditingUsername = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _usernameFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _startEditingUsername() {
+    setState(() {
+      _isEditingUsername = true;
+    });
+    _usernameFocusNode.requestFocus();
+  }
+
+  void _finishEditingUsername() {
+    setState(() {
+      _isEditingUsername = false;
+    });
+    // TODO: Save username changes
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,23 +88,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     children: [
                       // Profile Picture
-                      Container(
-                        width: 120.w,
-                        height: 120.w,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white24,
-                            width: 2.w,
-                          ),
-                          image: const DecorationImage(
-                            image: NetworkImage('https://i.pravatar.cc/300'),
-                            fit: BoxFit.cover,
-                          ),
+                      GestureDetector(
+                        onTap: () {
+                          // TODO: Implement image picker
+                        },
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 120.w,
+                              height: 120.w,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white24,
+                                  width: 2.w,
+                                ),
+                                image: const DecorationImage(
+                                  image:
+                                      NetworkImage('https://i.pravatar.cc/300'),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                padding: EdgeInsets.all(8.w),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.black,
+                                    width: 2.w,
+                                  ),
+                                ),
+                                child: Icon(
+                                  HugeIcons.strokeRoundedCamera01,
+                                  color: Colors.white,
+                                  size: 16.sp,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       SizedBox(height: 16.h),
-                      // Name
+                      // Name (non-editable)
                       Text(
                         'Sarah Parker',
                         style: TextStyle(
@@ -91,14 +145,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       SizedBox(height: 4.h),
-                      // Username
-                      Text(
-                        '@sarahp',
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 15.sp,
-                          letterSpacing: -0.3,
-                        ),
+                      // Username (editable)
+                      GestureDetector(
+                        onTap: _startEditingUsername,
+                        child: _isEditingUsername
+                            ? TextField(
+                                controller: _usernameController,
+                                focusNode: _usernameFocusNode,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 15.sp,
+                                  letterSpacing: -0.3,
+                                ),
+                                decoration: InputDecoration(
+                                  border: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.white24,
+                                      width: 1.w,
+                                    ),
+                                  ),
+                                ),
+                                onSubmitted: (_) => _finishEditingUsername(),
+                                onEditingComplete: _finishEditingUsername,
+                              )
+                            : Text(
+                                _usernameController.text,
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 15.sp,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
                       ),
                       SizedBox(height: 16.h),
                       // Stats Row
@@ -119,72 +197,127 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
 
-                // Settings Section
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-                        child: Text(
-                          'Settings',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17.sp,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: -0.3,
+                // Settings Sections
+                Column(
+                  children: [
+                    // Account Settings
+                    Container(
+                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16.r),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                            child: Text(
+                              'Account',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
                           ),
-                        ),
+                          _buildSettingsTile(
+                            icon: HugeIcons.strokeRoundedUserGroup,
+                            title: 'Find Friends',
+                            onTap: () {
+                              NavigationController.navigateToAddFriend(context);
+                            },
+                          ),
+                          _buildSettingsTile(
+                            icon: HugeIcons.strokeRoundedLock,
+                            title: 'Privacy',
+                            onTap: () {
+                              // TODO: Navigate to privacy settings
+                            },
+                          ),
+                        ],
                       ),
-                      _buildSettingsTile(
-                        icon: HugeIcons.strokeRoundedMoon01,
-                        title: 'Dark Mode',
-                        trailing: Switch(
-                          value: _isDarkMode,
-                          onChanged: (value) {
-                            setState(() => _isDarkMode = value);
-                          },
-                          activeColor: Colors.blue,
-                        ),
+                    ),
+
+                    // Preferences
+                    Container(
+                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16.r),
                       ),
-                      _buildSettingsTile(
-                        icon: HugeIcons.strokeRoundedNotification01,
-                        title: 'Notifications',
-                        trailing: Switch(
-                          value: _isNotificationsEnabled,
-                          onChanged: (value) {
-                            setState(() => _isNotificationsEnabled = value);
-                          },
-                          activeColor: Colors.blue,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                            child: Text(
+                              'Preferences',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ),
+                          _buildSettingsTile(
+                            icon: HugeIcons.strokeRoundedNotification01,
+                            title: 'Notifications',
+                            trailing: CupertinoSwitch(
+                              value: _isNotificationsEnabled,
+                              onChanged: (value) {
+                                setState(() => _isNotificationsEnabled = value);
+                              },
+                              activeColor: Colors.blue,
+                            ),
+                          ),
+                        ],
                       ),
-                      _buildSettingsTile(
-                        icon: HugeIcons.strokeRoundedUserGroup,
-                        title: 'Find Friends',
-                        onTap: () {
-                          NavigationController.navigateToAddFriend(context);
-                        },
+                    ),
+
+                    // Legal & Support
+                    Container(
+                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16.r),
                       ),
-                      _buildSettingsTile(
-                        icon: HugeIcons.strokeRoundedLock,
-                        title: 'Privacy',
-                        onTap: () {
-                          // TODO: Navigate to privacy settings
-                        },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                            child: Text(
+                              'Legal & Support',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ),
+                          _buildSettingsTile(
+                            icon: HugeIcons.strokeRoundedLegalDocument01,
+                            title: 'Terms & Conditions',
+                            onTap: () {
+                              // TODO: Show T&Cs
+                            },
+                          ),
+                        ],
                       ),
-                      _buildSettingsTile(
-                        icon: HugeIcons.strokeRoundedInformationCircle,
-                        title: 'About',
-                        onTap: () {
-                          // TODO: Show about dialog
-                        },
+                    ),
+
+                    // Sign Out Section
+                    Container(
+                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 32.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16.r),
                       ),
-                      _buildSettingsTile(
+                      child: _buildSettingsTile(
                         icon: HugeIcons.strokeRoundedLogout01,
                         title: 'Sign Out',
                         textColor: Colors.red,
@@ -196,10 +329,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           }
                         },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 32.h),
               ],
             ),
           ),
