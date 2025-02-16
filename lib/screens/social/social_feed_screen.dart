@@ -275,7 +275,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                   BoxShadow(
                     color: Colors.black26,
                     blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    offset: Offset(0, 10.h),
                   ),
                 ],
                 border: Border.all(
@@ -349,15 +349,44 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 
                     // Inner frame effect
                     IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.08),
-                            width: 1.w,
+                      child: Stack(
+                        children: [
+                          // Main inner border
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.08),
+                                width: 1.5.w,
+                              ),
+                              borderRadius: BorderRadius.circular(24.r),
+                            ),
+                            margin: EdgeInsets.all(12.w),
                           ),
-                          borderRadius: BorderRadius.circular(24.r),
-                        ),
-                        margin: EdgeInsets.all(12.w),
+                          // Top-left corner decoration
+                          Positioned(
+                            top: 28.h,
+                            left: 28.w,
+                            child: Container(
+                              width: 16.w,
+                              height: 16.w,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(8.r),
+                                ),
+                                border: Border(
+                                  top: BorderSide(
+                                    color: Colors.white.withOpacity(0.1),
+                                    width: 1.w,
+                                  ),
+                                  left: BorderSide(
+                                    color: Colors.white.withOpacity(0.1),
+                                    width: 1.w,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
