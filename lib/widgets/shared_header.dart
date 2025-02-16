@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../navigation/navigation_controller.dart';
-import '../screens/social/social_feed_screen.dart';
+import 'calendar_overlay.dart';
+import 'add_friend_modal.dart';
 
 class SharedHeader extends StatelessWidget implements PreferredSizeWidget {
   const SharedHeader({super.key});
