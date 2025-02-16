@@ -227,7 +227,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: HugeIcons.strokeRoundedUserGroup,
                             title: 'Find Friends',
                             onTap: () {
-                              NavigationController.navigateToAddFriend(context);
+                              Navigator.pushReplacementNamed(context, '/social',
+                                  arguments: true);
                             },
                           ),
                         ],

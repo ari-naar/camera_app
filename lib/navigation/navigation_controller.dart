@@ -7,7 +7,6 @@ import '../screens/home/home_screen.dart';
 import '../screens/social/social_feed_screen.dart';
 import '../screens/social/photo_detail_screen.dart';
 import '../screens/profile/profile_screen.dart';
-import '../screens/profile/add_friend_screen.dart';
 import '../models/social_photo.dart';
 
 class NavigationController {
@@ -25,14 +24,28 @@ class NavigationController {
           builder: (_) => PhotoPreviewScreen(photo: photo),
         );
       case '/social':
-        return MaterialPageRoute(builder: (_) => const SocialFeedScreen());
+        return MaterialPageRoute(
+          builder: (context) {
+            final showAddFriendModal = settings.arguments as bool? ?? false;
+            if (showAddFriendModal) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  barrierColor: Colors.black.withOpacity(0.5),
+                  builder: (context) => const AddFriendModal(),
+                );
+              });
+            }
+            return const SocialFeedScreen();
+          },
+        );
       case '/photo-detail':
         final photo = settings.arguments as SocialPhoto;
         return PhotoDetailRoute(photo: photo);
       case '/profile':
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
-      case '/add-friend':
-        return MaterialPageRoute(builder: (_) => const AddFriendScreen());
       default:
         return MaterialPageRoute(builder: (_) => const WelcomeScreen());
     }
@@ -50,15 +63,12 @@ class NavigationController {
     Navigator.pushNamed(context, '/profile');
   }
 
-  static void navigateToAddFriend(BuildContext context) {
-    Navigator.pushNamed(context, '/add-friend');
-  }
-
   static void navigateToPreview(BuildContext context, XFile photo) {
     Navigator.pushNamed(context, '/preview', arguments: photo);
   }
 
-  static void navigateToSocial(BuildContext context) {
+  static void navigateToSocial(BuildContext context,
+      {bool showAddFriendModal = false}) {
     Navigator.pushNamed(context, '/social');
   }
 
