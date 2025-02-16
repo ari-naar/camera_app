@@ -79,7 +79,9 @@ class SharedHeader extends StatelessWidget implements PreferredSizeWidget {
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
                 barrierColor: Colors.black.withOpacity(0.5),
-                builder: (context) => const AddFriendModal(),
+                builder: (context) => AddFriendModal(
+                  onClose: () => Navigator.of(context).pop(),
+                ),
               );
             },
             icon: Icon(

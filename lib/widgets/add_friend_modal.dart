@@ -4,7 +4,12 @@ import 'package:hugeicons/hugeicons.dart';
 import '../screens/profile/user_profile_screen.dart';
 
 class AddFriendModal extends StatefulWidget {
-  const AddFriendModal({super.key});
+  final VoidCallback? onClose;
+
+  const AddFriendModal({
+    super.key,
+    this.onClose,
+  });
 
   @override
   State<AddFriendModal> createState() => _AddFriendModalState();
@@ -187,6 +192,7 @@ class _AddFriendModalState extends State<AddFriendModal> {
                 ),
                 // Header
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Add Friends',
@@ -197,6 +203,15 @@ class _AddFriendModalState extends State<AddFriendModal> {
                         letterSpacing: -0.3,
                       ),
                     ),
+                    if (widget.onClose != null)
+                      IconButton(
+                        onPressed: widget.onClose,
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: Colors.white54,
+                          size: 24.sp,
+                        ),
+                      ),
                   ],
                 ),
                 SizedBox(height: 16.h),
