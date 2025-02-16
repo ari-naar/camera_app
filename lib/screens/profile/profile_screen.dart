@@ -15,7 +15,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isNotificationsEnabled = true;
-  final _usernameController = TextEditingController(text: '@sarahp');
+  final _usernameController = TextEditingController(text: 'sarahp');
   final _usernameFocusNode = FocusNode();
   bool _isEditingUsername = false;
 
@@ -124,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ),
                                 child: Icon(
-                                  HugeIcons.strokeRoundedCamera01,
+                                  HugeIcons.strokeRoundedCamera02,
                                   color: Colors.white,
                                   size: 16.sp,
                                 ),
@@ -170,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 onEditingComplete: _finishEditingUsername,
                               )
                             : Text(
-                                _usernameController.text,
+                                '@${_usernameController.text}',
                                 style: TextStyle(
                                   color: Colors.white54,
                                   fontSize: 15.sp,
